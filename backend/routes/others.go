@@ -11,11 +11,23 @@ type MessageResponse struct {
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	msg := MessageResponse{
+	response := MessageResponse{
 		Message: "Welcome to Photolens API",
 		Error:   false,
 	}
-	jsonResposne, err := json.Marshal(msg)
+	jsonResposne, err := json.Marshal(response)
+	if err != nil {
+		return
+	}
+	w.Write(jsonResposne)
+}
+
+func SendError(w http.ResponseWriter, msg string) {
+	response := MessageResponse{
+		Message: msg,
+		Error:   true,
+	}
+	jsonResposne, err := json.Marshal(response)
 	if err != nil {
 		return
 	}

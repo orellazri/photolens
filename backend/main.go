@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -20,8 +19,10 @@ func main() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/", routes.IndexHandler).Methods("GET")
+	photosRouter := router.PathPrefix("/photos").Subrouter()
+	routes.RegisterPhotosRouter(photosRouter)
 
 	http.Handle("/", router)
-	fmt.Println("Photolens Server started on port " + port + "...")
+	log.Printf("Photolens Server started on port %s...", port)
 	http.ListenAndServe("localhost:"+port, router)
 }
