@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -9,11 +10,13 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/orellazri/photolens/models"
 	"github.com/orellazri/photolens/utils"
 )
 
 func RegisterPhotosRouter(context *utils.Context, router *mux.Router) {
-	router.HandleFunc("/{id}", GetPhoto)
+	router.HandleFunc("/new", func(w http.ResponseWriter, r *http.Request) { NewPhoto(w, r, context) }).Methods("POST")
+	router.HandleFunc("/{id}", GetPhoto).Methods("GET")
 }
 
 func GetPhoto(w http.ResponseWriter, r *http.Request) {
@@ -33,4 +36,24 @@ func GetPhoto(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "image/jpeg")
 	io.Copy(w, img)
+}
+
+type NewPhotoRequest struct {
+	Path string `json:"path"`
+}
+
+func NewPhoto(w http.ResponseWriter, r *http.Request, context *utils.Context) {
+	decoder := json.NewDecoder(r.Body)
+	var request NewPhotoRequest
+	err := decoder.Decode(&request)
+	if err != nil {
+		SendError(w, "Invalid request")
+		return
+	}
+
+	context.DB.Create(&models.Photo{
+		Path: request.Path,
+	})
+
+	fmt.Fprintf(w, "Photo created")
 }
