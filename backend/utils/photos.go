@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/iafan/cwalk"
+	"github.com/orellazri/photolens/models"
 )
 
 func IndexPhotos(context *Context) error {
@@ -13,7 +14,7 @@ func IndexPhotos(context *Context) error {
 	start := time.Now()
 
 	// Walk the photos directory and get all photo names
-	photos := make([]string, 0)
+	photos := make(map[string]time.Time, 0) // Map photo path to last modified time
 	err := cwalk.Walk(context.RootPath,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -22,12 +23,41 @@ func IndexPhotos(context *Context) error {
 
 			// Check if this is a file and not a directory
 			if !info.IsDir() {
-				photos = append(photos, path)
+				photos[path] = info.ModTime().UTC()
 			}
 			return nil
 		})
 	if err != nil {
 		return err
+	}
+
+	// Iterate through all photos in the database and remove from
+	// the filesystem map if their last modified time is equal
+	var results []models.Photo
+	context.DB.Select("path", "last_modified").Find(&results)
+	for _, result := range results {
+		if _, ok := photos[result.Path]; ok {
+			if photos[result.Path] == result.LastModified {
+				delete(photos, result.Path)
+			}
+		}
+	}
+
+	// Now the filesystem map contains photos that are either not in
+	// the database, or their last modified times are different.
+	// So we need to sync them
+	for path, lastModified := range photos {
+		// TODO: Sync photo (Generate thumbnails, so on...)
+
+		// Try to create photo in database, or update last modified time if
+		// it already exists
+		photo := models.Photo{
+			Path:         path,
+			LastModified: lastModified,
+		}
+		if context.DB.Model(&photo).Where("path = ?", path).Updates(&photo).RowsAffected == 0 {
+			context.DB.Create(&photo)
+		}
 	}
 
 	log.Printf("Indexed %v photos in %v\n", len(photos), time.Since(start))

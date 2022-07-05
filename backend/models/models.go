@@ -1,8 +1,13 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Photo struct {
 	gorm.Model
-	Path string `gorm:"not null"`
+	Path         string `gorm:"not null"`
+	LastModified time.Time
 }
