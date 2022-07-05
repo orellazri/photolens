@@ -31,6 +31,8 @@ func IndexPhotos(context *Context) error {
 		return err
 	}
 
+	numPhotos := len(photos)
+
 	// Iterate through all photos in the database and remove from
 	// the filesystem map if their last modified time is equal
 	var results []models.Photo
@@ -63,7 +65,7 @@ func IndexPhotos(context *Context) error {
 	// TODO: Compare photos left in database that are not in the filesystem
 	// and remove them (from database, thumbnails, etc.)
 
-	log.Printf("Indexed %v photos in %v\n", len(photos), time.Since(start))
+	log.Printf("Indexed %v photos in %v\n", numPhotos, time.Since(start))
 
 	return nil
 }
