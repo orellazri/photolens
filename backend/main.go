@@ -14,16 +14,23 @@ func main() {
 	// Database
 	db, err := database.SetupDatabase()
 	if err != nil {
-		log.Fatal("Could not setup databse")
+		log.Fatalf("Could not setup databse! %s", err)
 	}
 	err = database.MigrateDatabase(db)
 	if err != nil {
-		log.Fatal("Could not migrate database")
+		log.Fatalf("Could not migrate database! %s", err)
 	}
 
 	// Context
 	context := utils.Context{
-		DB: db,
+		DB:       db,
+		RootPath: "./photos",
+	}
+
+	// Index photos
+	err = utils.IndexPhotos(&context)
+	if err != nil {
+		log.Fatalf("Could not index photos! %s", err)
 	}
 
 	// Routes
@@ -35,6 +42,6 @@ func main() {
 	// HTTP
 	http.Handle("/", router)
 	port := "5000"
-	log.Printf("Photolens Server started on port %s...", port)
+	log.Printf("Photolens Server listening on port %s", port)
 	http.ListenAndServe("localhost:"+port, router)
 }

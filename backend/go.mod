@@ -9,6 +9,7 @@ require (
 )
 
 require (
+	github.com/iafan/cwalk v0.0.0-20210125030640-586a8832a711 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mattn/go-sqlite3 v1.14.12 // indirect
