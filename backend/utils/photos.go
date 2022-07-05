@@ -47,7 +47,7 @@ func IndexPhotos(context *Context) error {
 	// the database, or their last modified times are different.
 	// So we need to sync them
 	for path, lastModified := range photos {
-		// TODO: Sync photo (Generate thumbnails, so on...)
+		// TODO: Sync photo (Generate thumbnails, etc.)
 
 		// Try to create photo in database, or update last modified time if
 		// it already exists
@@ -59,6 +59,9 @@ func IndexPhotos(context *Context) error {
 			context.DB.Create(&photo)
 		}
 	}
+
+	// TODO: Compare photos left in database that are not in the filesystem
+	// and remove them (from database, thumbnails, etc.)
 
 	log.Printf("Indexed %v photos in %v\n", len(photos), time.Since(start))
 
