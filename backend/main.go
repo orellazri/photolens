@@ -3,26 +3,16 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
 	"github.com/orellazri/photolens/database"
 	"github.com/orellazri/photolens/routes"
 	"github.com/orellazri/photolens/utils"
 )
 
 func main() {
-	// Environment variables
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Could not load .env file")
-	}
-	port := os.Getenv("PORT")
-	dsn := os.Getenv("POSTGRES_URL")
-
 	// Database
-	db, err := database.SetupDatabase(dsn)
+	db, err := database.SetupDatabase()
 	if err != nil {
 		log.Fatal("Could not setup databse")
 	}
@@ -44,6 +34,7 @@ func main() {
 
 	// HTTP
 	http.Handle("/", router)
+	port := "5000"
 	log.Printf("Photolens Server started on port %s...", port)
 	http.ListenAndServe("localhost:"+port, router)
 }

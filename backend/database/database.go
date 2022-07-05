@@ -2,12 +2,12 @@ package database
 
 import (
 	"github.com/orellazri/photolens/models"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-func SetupDatabase(dsn string) (*gorm.DB, error) {
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+func SetupDatabase() (*gorm.DB, error) {
+	db, err := gorm.Open(sqlite.Open("photolens.db"), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
