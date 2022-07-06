@@ -24,20 +24,20 @@ func main() {
 	// Context
 	context := utils.Context{
 		DB:       db,
-		RootPath: "./photos",
+		RootPath: "./media",
 	}
 
-	// Index photos
-	err = utils.IndexPhotos(&context)
+	// Index media
+	err = utils.IndexMedia(&context)
 	if err != nil {
-		log.Fatalf("Could not index photos! %s", err)
+		log.Fatalf("Could not index media! %s", err)
 	}
 
 	// Routes
 	router := mux.NewRouter()
 	router.HandleFunc("/", routes.IndexHandler).Methods("GET")
-	photosRouter := router.PathPrefix("/photos").Subrouter()
-	routes.RegisterPhotosRouter(&context, photosRouter)
+	mediaRouter := router.PathPrefix("/media").Subrouter()
+	routes.RegisterMediaRouter(&context, mediaRouter)
 
 	// HTTP
 	http.Handle("/", router)

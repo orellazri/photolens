@@ -1,4 +1,5 @@
 photolens
+*.exe
 .env
 *.db
-photos/
+media/

@@ -6,8 +6,9 @@ import (
 	"gorm.io/gorm"
 )
 
-type Photo struct {
+type Media struct {
 	gorm.Model
 	Path         string `gorm:"not null"`
+	IsPhoto      bool   `gorm:"default:true"`
 	LastModified time.Time
 }

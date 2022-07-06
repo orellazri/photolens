@@ -17,7 +17,7 @@ func SetupDatabase() (*gorm.DB, error) {
 
 func MigrateDatabase(db *gorm.DB) error {
 	var models []interface{} = []interface{}{
-		&models.Photo{},
+		&models.Media{},
 	}
 
 	db.AutoMigrate(models...)

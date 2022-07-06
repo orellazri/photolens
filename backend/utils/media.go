@@ -9,12 +9,12 @@ import (
 	"github.com/orellazri/photolens/models"
 )
 
-func IndexPhotos(context *Context) error {
-	log.Print("Starting to index photos...")
+func IndexMedia(context *Context) error {
+	log.Print("Starting to index media files...")
 	start := time.Now()
 
-	// Walk the photos directory and get all photo names
-	photos := make(map[string]time.Time, 0) // Map photo path to last modified time
+	// Walk the fsMedia directory and get all photo names
+	fsMedia := make(map[string]time.Time, 0) // Map photo path to last modified time
 	err := cwalk.Walk(context.RootPath,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -23,7 +23,7 @@ func IndexPhotos(context *Context) error {
 
 			// Check if this is a file and not a directory
 			if !info.IsDir() {
-				photos[path] = info.ModTime().UTC()
+				fsMedia[path] = info.ModTime().UTC()
 			}
 			return nil
 		})
@@ -31,16 +31,16 @@ func IndexPhotos(context *Context) error {
 		return err
 	}
 
-	numPhotos := len(photos)
+	numFsMedia := len(fsMedia)
 
 	// Iterate through all photos in the database and remove from
 	// the filesystem map if their last modified time is equal
-	var results []models.Photo
+	var results []models.Media
 	context.DB.Select("path", "last_modified").Find(&results)
 	for _, result := range results {
-		if _, ok := photos[result.Path]; ok {
-			if photos[result.Path] == result.LastModified {
-				delete(photos, result.Path)
+		if _, ok := fsMedia[result.Path]; ok {
+			if fsMedia[result.Path] == result.LastModified {
+				delete(fsMedia, result.Path)
 			}
 		}
 	}
@@ -48,13 +48,14 @@ func IndexPhotos(context *Context) error {
 	// Now the filesystem map contains photos that are either not in
 	// the database, or their last modified times are different.
 	// So we need to sync them
-	for path, lastModified := range photos {
+	for path, lastModified := range fsMedia {
 		// TODO: Sync photo (Generate thumbnails, etc.)
 
 		// Try to create photo in database, or update last modified time if
 		// it already exists
-		photo := models.Photo{
+		photo := models.Media{
 			Path:         path,
+			IsPhoto:      true, // TODO: Check if photo
 			LastModified: lastModified,
 		}
 		if context.DB.Model(&photo).Where("path = ?", path).Updates(&photo).RowsAffected == 0 {
@@ -65,7 +66,7 @@ func IndexPhotos(context *Context) error {
 	// TODO: Compare photos left in database that are not in the filesystem
 	// and remove them (from database, thumbnails, etc.)
 
-	log.Printf("Indexed %v photos in %v\n", numPhotos, time.Since(start))
+	log.Printf("Indexed %v files in %v\n", numFsMedia, time.Since(start))
 
 	return nil
 }

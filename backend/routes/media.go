@@ -12,11 +12,11 @@ import (
 	"github.com/orellazri/photolens/utils"
 )
 
-func RegisterPhotosRouter(context *utils.Context, router *mux.Router) {
-	router.HandleFunc("/{id}", func(w http.ResponseWriter, r *http.Request) { GetPhoto(w, r, context) }).Methods("GET")
+func RegisterMediaRouter(context *utils.Context, router *mux.Router) {
+	router.HandleFunc("/{id}", func(w http.ResponseWriter, r *http.Request) { GetMedia(w, r, context) }).Methods("GET")
 }
 
-func GetPhoto(w http.ResponseWriter, r *http.Request, context *utils.Context) {
+func GetMedia(w http.ResponseWriter, r *http.Request, context *utils.Context) {
 	idStr := mux.Vars(r)["id"]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -28,11 +28,12 @@ func GetPhoto(w http.ResponseWriter, r *http.Request, context *utils.Context) {
 
 	img, err := os.Open(fmt.Sprintf("%s/%d.jpg", context.RootPath, id))
 	if err != nil {
-		log.Printf("Could not load image %d", id)
-		SendError(w, "Could not load image")
+		log.Printf("Could not load media %d", id)
+		SendError(w, "Could not load media")
 		return
 	}
 
+	// TODO: Set correct content type
 	w.Header().Set("Content-Type", "image/jpeg")
 	io.Copy(w, img)
 }
