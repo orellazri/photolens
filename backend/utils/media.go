@@ -16,6 +16,7 @@ type media struct {
 	contentType  string
 	isPhoto      bool
 	lastModified time.Time
+	shouldIndex  bool
 }
 
 func ProcessMedia(context *Context) error {
@@ -48,6 +49,7 @@ func ProcessMedia(context *Context) error {
 					contentType:  contentType,
 					isPhoto:      strings.HasPrefix(contentType, "image/"),
 					lastModified: info.ModTime().UTC(),
+					shouldIndex:  true,
 				}
 			}
 			return nil
@@ -57,25 +59,34 @@ func ProcessMedia(context *Context) error {
 	}
 
 	numProcessed := len(fsMedia)
-	numIndexed := 0
+	numIndexed := 0 // Number of media files that are going to be indexed
+	numDeleted := 0 // Number of media files that were deleted from the filesystem
 
-	// Iterate through all photos in the database and remove from
-	// the filesystem map if their last modified time is equal
+	// Iterate through all media files in the database and compare their last
+	// modified tomes with the ones in the filesystem. If they are not equal,
+	// mark those files as "should index" to index them
 	var results []models.Media
-	context.DB.Select("path", "last_modified").Find(&results)
+	err = context.DB.Select("id", "path", "last_modified").Find(&results).Error
+	if err != nil {
+		return err
+	}
 	for _, result := range results {
-		if _, ok := fsMedia[result.Path]; ok {
-			if fsMedia[result.Path].lastModified == result.LastModified {
-				delete(fsMedia, result.Path)
+		if media, ok := fsMedia[result.Path]; ok {
+			if media.lastModified == result.LastModified {
+				media.shouldIndex = false
+				fsMedia[result.Path] = media
 			}
 		}
 	}
 
-	// Now the filesystem map contains photos that are either not in
-	// the database, or their last modified times are different.
-	// So we need to sync them
+	// Iterate through all the media files in the filesystem map
+	// and index them if needed
 	for path, media := range fsMedia {
-		// TODO: Index media file (Generate thumbnails, etc.)
+		if !media.shouldIndex {
+			continue
+		}
+
+		// TODO: Proprely index file (generate thumbnails, etc.)
 
 		// Try to create photo in database, or update last modified time if
 		// it already exists
@@ -92,12 +103,25 @@ func ProcessMedia(context *Context) error {
 		numIndexed += 1
 	}
 
-	// TODO: Compare photos left in database that are not in the filesystem
-	// and remove them (from database, thumbnails, etc.)
+	// Iterate through all the media files in the database and check if they don't
+	// exist in the filesystem. If so, delete them
+	for _, result := range results {
+		if _, ok := fsMedia[result.Path]; !ok {
+			err = context.DB.Unscoped().Delete(&models.Media{}, result.ID).Error
+			if err != nil {
+				return err
+			}
+
+			// TODO: Properly delete remains (thumbnails, etc.)
+
+			numDeleted += 1
+		}
+	}
 
 	log.Printf("Processing done in %v\n", time.Since(start))
 	log.Printf("    Processed: %v\n", numProcessed)
 	log.Printf("    Indexed: %v\n", numIndexed)
+	log.Printf("    Deleted: %v\n", numDeleted)
 
 	return nil
 }
