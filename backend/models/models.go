@@ -9,6 +9,7 @@ import (
 type Media struct {
 	gorm.Model
 	Path         string `gorm:"not null"`
-	IsPhoto      bool   `gorm:"default:true"`
+	IsPhoto      bool
+	ContentType  string `gorm:"not null"`
 	LastModified time.Time
 }

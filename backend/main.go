@@ -27,10 +27,10 @@ func main() {
 		RootPath: "./media",
 	}
 
-	// Index media
-	err = utils.IndexMedia(&context)
+	// Process media
+	err = utils.ProcessMedia(&context)
 	if err != nil {
-		log.Fatalf("Could not index media! %s", err)
+		log.Fatalf("Could not process media! %s", err)
 	}
 
 	// Routes
