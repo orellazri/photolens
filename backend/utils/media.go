@@ -118,10 +118,10 @@ func ProcessMedia(context *Context) error {
 		}
 	}
 
-	log.Printf("Processing done in %v\n", time.Since(start))
 	log.Printf("    Processed: %v\n", numProcessed)
 	log.Printf("    Indexed: %v\n", numIndexed)
 	log.Printf("    Deleted: %v\n", numDeleted)
+	log.Printf("Processing done in %v\n", time.Since(start))
 
 	return nil
 }
