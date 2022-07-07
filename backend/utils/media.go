@@ -67,7 +67,7 @@ func ProcessMedia(context *Context) error {
 	// modified tomes with the ones in the filesystem. If they are not equal,
 	// mark those files as "should index" to index them
 	var results []models.Media
-	err = context.DB.Select("path", "last_modified").Find(&results).Error
+	err = context.DB.Select("id", "path", "last_modified").Find(&results).Error
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func ProcessMedia(context *Context) error {
 	// exist in the filesystem. If so, delete them
 	for _, result := range results {
 		if _, ok := fsMedia[result.Path]; !ok {
-			err = context.DB.Unscoped().Delete(&models.Media{Path: result.Path}).Error
+			err = context.DB.Unscoped().Delete(&models.Media{}, result.ID).Error
 			if err != nil {
 				return err
 			}

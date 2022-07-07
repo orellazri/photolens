@@ -18,6 +18,7 @@ func RegisterMediaRouter(context *utils.Context, router *mux.Router) {
 
 func GetMedia(w http.ResponseWriter, r *http.Request, context *utils.Context) {
 	idStr := mux.Vars(r)["id"]
+
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		SendError(w, "Invalid id")
