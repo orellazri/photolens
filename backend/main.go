@@ -12,10 +12,12 @@ import (
 
 func main() {
 	// Database
+	log.Println("Setting up database...")
 	db, err := database.SetupDatabase()
 	if err != nil {
 		log.Fatalf("Could not setup databse! %s", err)
 	}
+	log.Println("Migrating database...")
 	err = database.MigrateDatabase(db)
 	if err != nil {
 		log.Fatalf("Could not migrate database! %s", err)
