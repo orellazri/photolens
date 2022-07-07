@@ -43,7 +43,6 @@ func GetMedia(w http.ResponseWriter, r *http.Request, context *utils.Context) {
 		return
 	}
 
-	// TODO: Set correct content type
 	w.Header().Set("Content-Type", media.ContentType)
 	io.Copy(w, img)
 }
