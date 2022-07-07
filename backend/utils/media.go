@@ -126,3 +126,14 @@ func ProcessMedia(context *Context) error {
 
 	return nil
 }
+
+func GetMediaFromID(id int, context *Context) (*models.Media, error) {
+	// Query media from id in database
+	var media models.Media
+	err := context.DB.First(&media, id).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &media, nil
+}

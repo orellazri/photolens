@@ -3,6 +3,7 @@ package utils
 import "gorm.io/gorm"
 
 type Context struct {
-	DB       *gorm.DB
-	RootPath string
+	DB        *gorm.DB
+	RootPath  string
+	CachePath string
 }

@@ -3,3 +3,4 @@ photolens
 .env
 *.db
 media/
+cache/

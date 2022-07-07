@@ -25,9 +25,12 @@ func main() {
 
 	// Context
 	context := utils.Context{
-		DB:       db,
-		RootPath: "./media",
+		DB:        db,
+		RootPath:  "./media",
+		CachePath: "./cache",
 	}
+
+	// TODO: Create root directory, cache directory and cache/thumbnails directory if they don't exist yet
 
 	// Process media
 	err = utils.ProcessMedia(&context)
