@@ -27,7 +27,7 @@ func GetMedia(w http.ResponseWriter, r *http.Request, context *utils.Context) {
 		return
 	}
 
-	// Query path from id in database
+	// Query media from id in database
 	var media models.Media
 	err = context.DB.First(&media, id).Error
 	if err != nil {
@@ -36,13 +36,16 @@ func GetMedia(w http.ResponseWriter, r *http.Request, context *utils.Context) {
 		return
 	}
 
-	img, err := os.Open(fmt.Sprintf("%s/%s", context.RootPath, media.Path))
+	// Open file
+	file, err := os.Open(fmt.Sprintf("%s/%s", context.RootPath, media.Path))
+	defer file.Close()
 	if err != nil {
 		log.Printf("Could not load media %d! %v", id, err)
 		SendError(w, "Could not load media")
 		return
 	}
 
+	// Send file
 	w.Header().Set("Content-Type", media.ContentType)
-	io.Copy(w, img)
+	io.Copy(w, file)
 }
