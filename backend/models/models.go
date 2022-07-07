@@ -2,14 +2,13 @@ package models
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Media struct {
-	gorm.Model
-	Path         string `gorm:"not null"`
+	Path         string `gorm:"primaryKey"`
 	ContentType  string `gorm:"not null"`
 	IsPhoto      bool
 	LastModified time.Time
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
