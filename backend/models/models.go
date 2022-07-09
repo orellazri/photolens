@@ -13,3 +13,8 @@ type Media struct {
 	IsPhoto      bool
 	LastModified time.Time
 }
+
+type Meta struct {
+	Key   string `gorm:"primaryKey;not null"`
+	Value string `gorm:"not null"`
+}

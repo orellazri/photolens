@@ -23,16 +23,51 @@ func ProcessMedia(context *Context) error {
 	log.Print("Starting to process media files...")
 	start := time.Now()
 
+	// Get last process time from database
+	var lastProcessTimeResult models.Meta
+	var lastProcessTime time.Time
+	err := context.DB.Where("key = ?", "last_process_time").First(&lastProcessTimeResult).Error
+	if err != nil {
+		if err.Error() != "record not found" {
+			return err
+		}
+
+		// We never processed before, so set the last process time to 100 years ago
+		log.Println("First processing detected. Adding process time to database")
+		lastProcessTime = time.Now().AddDate(-100, 0, 0).UTC()
+		err = context.DB.Create(&models.Meta{
+			Key:   "last_process_time",
+			Value: lastProcessTime.String(),
+		}).Error
+		if err != nil {
+			return err
+		}
+	} else {
+		// Set last process time from database if it exists there already
+		lastProcessTime, err = time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", lastProcessTimeResult.Value)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Walk the fsMedia directory and get all photo names
 	fsMedia := make(map[string]media, 0) // Map photo path to last modified time
-	err := cwalk.Walk(context.RootPath,
+	err = cwalk.Walk(context.RootPath,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 
-			// Check if this is a file and not a directory
-			if !info.IsDir() {
+			if info.IsDir() {
+				// This is a directory.
+				// Check if its last modified time is greather than the last processing time
+				// from the database
+				if info.ModTime().UTC().After(lastProcessTime) {
+					// This directory was modified after the last process time, so we need to
+					// process it
+				}
+			} else {
+				// This is a file.
 				// Check content type by reading the first 512 bytes of the file
 				file, err := os.Open(filepath.Join(context.RootPath, path))
 				if err != nil {
@@ -117,6 +152,13 @@ func ProcessMedia(context *Context) error {
 
 			numDeleted += 1
 		}
+	}
+
+	// Set last process time
+	lastProcessTime = time.Now().UTC()
+	err = context.DB.Model(&models.Meta{}).Where("key = ?", "last_process_time").Update("value", lastProcessTime.String()).Error
+	if err != nil {
+		return err
 	}
 
 	log.Printf("    Processed: %v\n", numProcessed)
