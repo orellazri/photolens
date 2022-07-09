@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/orellazri/photolens/database"
+	"github.com/orellazri/photolens/models"
 )
 
 func setup(t *testing.T) *Context {
@@ -43,6 +44,16 @@ func TestProcessMediaAddFiles(t *testing.T) {
 	err := ProcessMedia(context)
 	if err != nil {
 		t.Error(err)
+	}
+
+	var results []models.Media
+	err = context.DB.Select("id").Find(&results).Error
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(results) != 0 {
+		t.Errorf("%d media file found in database, want 0", len(results))
 	}
 
 	cleanup(t, context)
