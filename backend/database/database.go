@@ -6,8 +6,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetupDatabase() (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open("photolens.db"), &gorm.Config{})
+func SetupDatabase(path string) (*gorm.DB, error) {
+	db, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}

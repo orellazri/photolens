@@ -13,14 +13,14 @@ import (
 func main() {
 	// Database
 	log.Println("Setting up database...")
-	db, err := database.SetupDatabase()
+	db, err := database.SetupDatabase("photolens.db")
 	if err != nil {
-		log.Fatalf("Could not setup databse! %s", err)
+		log.Fatalf("Could not setup databse! %v", err)
 	}
 	log.Println("Migrating database...")
 	err = database.MigrateDatabase(db)
 	if err != nil {
-		log.Fatalf("Could not migrate database! %s", err)
+		log.Fatalf("Could not migrate database! %v", err)
 	}
 
 	// Context
@@ -35,7 +35,7 @@ func main() {
 	// Process media
 	err = utils.ProcessMedia(&context)
 	if err != nil {
-		log.Fatalf("Could not process media! %s", err)
+		log.Fatalf("Could not process media! %v", err)
 	}
 
 	// Routes
