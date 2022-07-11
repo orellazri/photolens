@@ -49,29 +49,79 @@ func copySampleToTestDir(t *testing.T, context *Context, testDir string, file st
 	if err != nil {
 		t.Error(err)
 	}
-
-	err = ProcessMedia(context)
-	if err != nil {
-		t.Error(err)
-	}
 }
 
 func TestProcessMediaAddFiles(t *testing.T) {
 	context, testDir := setup(t)
 
+	// Copy sample files
 	sampleFiles := []string{"sample1.png", "sample2.jpg", "sample3.bmp", "sample4.gif"}
 	for _, file := range sampleFiles {
 		copySampleToTestDir(t, context, testDir, file)
 	}
 
-	var results []models.Media
-	err := context.DB.Select("id").Find(&results).Error
+	// Process media files
+	err := ProcessMedia(context)
 	if err != nil {
 		t.Error(err)
 	}
 
+	// Check database for media files
+	var results []models.Media
+	err = context.DB.Select("id").Find(&results).Error
+	if err != nil {
+		t.Error(err)
+	}
 	if len(results) != 4 {
-		t.Errorf("%d media files found in database, want 0", len(results))
+		t.Errorf("%d media files found in database, want 4", len(results))
+	}
+
+	cleanup(t, context)
+}
+
+func TestProcessMediaRemoveFiles(t *testing.T) {
+	context, testDir := setup(t)
+
+	// Copy sample files
+	sampleFiles := []string{"sample1.png", "sample2.jpg"}
+	for _, file := range sampleFiles {
+		copySampleToTestDir(t, context, testDir, file)
+	}
+
+	// Process media files
+	err := ProcessMedia(context)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Check database for media files
+	var results []models.Media
+	err = context.DB.Select("id").Find(&results).Error
+	if err != nil {
+		t.Error(err)
+	}
+	if len(results) != 2 {
+		t.Errorf("%d media files found in database, want 2", len(results))
+	}
+
+	// Remove one file to see that the database updates
+	err = os.Remove(filepath.Join(context.RootPath, "sample2.jpg"))
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Process media files
+	err = ProcessMedia(context)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = context.DB.Select("id").Find(&results).Error
+	if err != nil {
+		t.Error(err)
+	}
+	if len(results) != 1 {
+		t.Errorf("%d media files found in database, want 1", len(results))
 	}
 
 	cleanup(t, context)
