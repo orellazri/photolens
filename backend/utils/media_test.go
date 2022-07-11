@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,7 +10,7 @@ import (
 	"github.com/orellazri/photolens/models"
 )
 
-func setup(t *testing.T) *Context {
+func setup(t *testing.T) (*Context, string) {
 	tempDir := t.TempDir()
 	os.Mkdir(filepath.Join(tempDir, "media"), os.ModePerm)
 	os.Mkdir(filepath.Join(tempDir, "cache"), os.ModePerm)
@@ -27,7 +28,7 @@ func setup(t *testing.T) *Context {
 		RootPath:  filepath.Join(tempDir, "media"),
 		CachePath: filepath.Join(tempDir, "cache"),
 	}
-	return &context
+	return &context, tempDir
 }
 
 func cleanup(t *testing.T, context *Context) {
@@ -38,22 +39,39 @@ func cleanup(t *testing.T, context *Context) {
 	}
 }
 
-func TestProcessMediaAddFiles(t *testing.T) {
-	context := setup(t)
-
-	err := ProcessMedia(context)
+func copySampleToTestDir(t *testing.T, context *Context, testDir string, file string) {
+	// Copy sample photos to test directory
+	input, err := ioutil.ReadFile(filepath.Join("../", "samples", file))
 	if err != nil {
 		t.Error(err)
+	}
+	err = ioutil.WriteFile(filepath.Join(context.RootPath, file), input, 0644)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = ProcessMedia(context)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestProcessMediaAddFiles(t *testing.T) {
+	context, testDir := setup(t)
+
+	sampleFiles := []string{"sample1.png", "sample2.jpg", "sample3.bmp", "sample4.gif"}
+	for _, file := range sampleFiles {
+		copySampleToTestDir(t, context, testDir, file)
 	}
 
 	var results []models.Media
-	err = context.DB.Select("id").Find(&results).Error
+	err := context.DB.Select("id").Find(&results).Error
 	if err != nil {
 		t.Error(err)
 	}
 
-	if len(results) != 0 {
-		t.Errorf("%d media file found in database, want 0", len(results))
+	if len(results) != 4 {
+		t.Errorf("%d media files found in database, want 0", len(results))
 	}
 
 	cleanup(t, context)
