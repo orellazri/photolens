@@ -69,7 +69,7 @@ func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context)
 
 	// TODO: Check if thumbnail already exists before generating new one
 
-	// TODO: Move thumbnail generation to separate function in utils
+	// TODO: Move thumbnail generation to separate function in core
 
 	// Open image
 	file, err := os.Open(filepath.Join(context.RootPath, media.Path))
@@ -85,6 +85,14 @@ func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context)
 	if err != nil {
 		log.Printf("Could not decode image! %v", err)
 		SendError(w, "Could not decode image")
+		return
+	}
+
+	// Create directories for thumbnail according to original media file's path
+	err = os.MkdirAll(filepath.Join(context.CachePath, "thumbnails", filepath.Dir(media.Path)), os.ModePerm)
+	if err != nil {
+		log.Printf("Could not create directories for thumbnail image file! %v", err)
+		SendError(w, "Could not create thumbnail image file")
 		return
 	}
 
