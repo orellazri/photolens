@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/orellazri/photolens/core"
 	"github.com/orellazri/photolens/database"
 	"github.com/orellazri/photolens/routes"
-	"github.com/orellazri/photolens/utils"
 )
 
 func main() {
@@ -24,7 +24,7 @@ func main() {
 	}
 
 	// Context
-	context := utils.Context{
+	context := core.Context{
 		DB:        db,
 		RootPath:  "./media",
 		CachePath: "./cache",
@@ -33,7 +33,7 @@ func main() {
 	// TODO: Create root directory, cache directory and cache/thumbnails directory if they don't exist yet
 
 	// Process media
-	err = utils.ProcessMedia(&context)
+	err = core.ProcessMedia(&context)
 	if err != nil {
 		log.Fatalf("Could not process media! %v", err)
 	}

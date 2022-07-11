@@ -13,15 +13,15 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/gorilla/mux"
-	"github.com/orellazri/photolens/utils"
+	"github.com/orellazri/photolens/core"
 )
 
-func RegisterMediaRouter(context *utils.Context, router *mux.Router) {
+func RegisterMediaRouter(context *core.Context, router *mux.Router) {
 	router.HandleFunc("/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) { getMedia(w, r, context) }).Methods("GET")
 	router.HandleFunc("/thumbnail/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) { getThumbnail(w, r, context) }).Methods("GET")
 }
 
-func getMedia(w http.ResponseWriter, r *http.Request, context *utils.Context) {
+func getMedia(w http.ResponseWriter, r *http.Request, context *core.Context) {
 	// Convert id to number
 	idStr := mux.Vars(r)["id"]
 	id, err := strconv.Atoi(idStr)
@@ -31,7 +31,7 @@ func getMedia(w http.ResponseWriter, r *http.Request, context *utils.Context) {
 	}
 
 	// Get media from ID
-	media, err := utils.GetMediaFromID(id, context)
+	media, err := core.GetMediaFromID(id, context)
 	if err != nil {
 		SendError(w, fmt.Sprintf("Could not find media for id %v", id))
 		return
@@ -51,7 +51,7 @@ func getMedia(w http.ResponseWriter, r *http.Request, context *utils.Context) {
 	io.Copy(w, file)
 }
 
-func getThumbnail(w http.ResponseWriter, r *http.Request, context *utils.Context) {
+func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context) {
 	// Convert id to number
 	idStr := mux.Vars(r)["id"]
 	id, err := strconv.Atoi(idStr)
@@ -61,7 +61,7 @@ func getThumbnail(w http.ResponseWriter, r *http.Request, context *utils.Context
 	}
 
 	// Get media from ID
-	media, err := utils.GetMediaFromID(id, context)
+	media, err := core.GetMediaFromID(id, context)
 	if err != nil {
 		SendError(w, fmt.Sprintf("Could not find media for id %v", id))
 		return
