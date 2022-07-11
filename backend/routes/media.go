@@ -105,7 +105,7 @@ func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context)
 	}
 
 	// Resize image and write to thumbnail file
-	resizedImage := imaging.Resize(image, 128, 128, imaging.Lanczos)
+	resizedImage := imaging.Fill(image, 128, 128, imaging.Center, imaging.Lanczos)
 	err = png.Encode(thumbnailFile, resizedImage)
 	if err != nil {
 		log.Printf("Could not encode thumbnail! %v", err)
