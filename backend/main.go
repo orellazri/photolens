@@ -42,6 +42,7 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/", routes.IndexHandler).Methods("GET")
 	mediaRouter := router.PathPrefix("/media").Subrouter()
+	mediaRouter.Use(routes.CorsMiddleware)
 	routes.RegisterMediaRouter(&context, mediaRouter)
 
 	// HTTP
