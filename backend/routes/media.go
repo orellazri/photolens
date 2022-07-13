@@ -10,10 +10,12 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/orellazri/photolens/core"
+	"github.com/orellazri/photolens/models"
 )
 
 func RegisterMediaRouter(context *core.Context, router *mux.Router) {
 	router.HandleFunc("/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) { getMedia(w, r, context) }).Methods("GET")
+	router.HandleFunc("/thumbnail/all", func(w http.ResponseWriter, r *http.Request) { getAllThumbnails(w, r, context) }).Methods("GET")
 	router.HandleFunc("/thumbnail/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) { getThumbnail(w, r, context) }).Methods("GET")
 }
 
@@ -75,4 +77,17 @@ func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context)
 	// Send thumbnail file
 	w.Header().Set("Content-Type", "image/png")
 	io.Copy(w, thumbnailFile)
+}
+
+func getAllThumbnails(w http.ResponseWriter, r *http.Request, context *core.Context) {
+	// Get all media files from database
+	var results []models.Media
+	err := context.DB.Select("id", "path", "last_modified").Find(&results).Error
+	if err != nil {
+		log.Printf("Could not get media from database! %v", err)
+		SendError(w, "Could not get all thumbnails")
+		return
+	}
+
+	SendError(w, "WIP")
 }
