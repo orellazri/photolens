@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 function App() {
-  const [images, setImages] = useState<Array<string>>([]);
+  const [thumbnails, setThumbnails] = useState<Array<string>>([]);
 
   useEffect(() => {
     const fetchMedia = async () => {
@@ -10,7 +10,7 @@ function App() {
       console.log(res);
 
       for (let thumbnail of res.data.thumbnails) {
-        setImages((images) => [...images, "data:image/png;base64," + thumbnail]);
+        setThumbnails((images) => [...images, "data:image/png;base64," + thumbnail]);
       }
     };
 
@@ -21,7 +21,7 @@ function App() {
     <div>
       <h1>Photolens</h1>
       <hr />
-      {images.map((image) => (
+      {thumbnails.map((image) => (
         <img src={image} />
       ))}
     </div>
