@@ -1,9 +1,11 @@
 package core
 
 import (
+	"encoding/base64"
 	"fmt"
 	"image"
 	"image/png"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -185,57 +187,57 @@ func GetMediaFromID(id int, context *Context) (*models.Media, error) {
 }
 
 // Generate a thumbnail for a given image or fetch from cache if existing
-// Make sure to close the returned file when calling this function
-func GetThumbnail(context *Context, media *models.Media) (*os.File, error) {
-	thumbnailPath := filepath.Join(filepath.Join(context.CachePath, "thumbnails", fmt.Sprintf("%s.png", media.Path)))
+// Returns the thumnail image in a base64 encoded string
+func GetThumbnail(context *Context, media *models.Media) (string, error) {
+	thumbnailPath := filepath.Join(context.CachePath, "thumbnails", fmt.Sprintf("%s.png", media.Path))
 	// Check if thumbnail already exists before generating new one
 	if _, err := os.Stat(thumbnailPath); err == nil {
-		thumbnailFile, err := os.Open(thumbnailPath)
+		content, err := ioutil.ReadFile(thumbnailPath)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
-
-		return thumbnailFile, nil
+		encoded := base64.StdEncoding.EncodeToString(content)
+		return encoded, nil
 	}
 
 	// If we got here, the thumbnail doesn't exist already
 	// Open original image
 	file, err := os.Open(filepath.Join(context.RootPath, media.Path))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer file.Close()
 
 	// Decode original image
 	image, _, err := image.Decode(file)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// Create directories for thumbnail according to original media file's path
 	err = os.MkdirAll(filepath.Join(context.CachePath, "thumbnails", filepath.Dir(media.Path)), os.ModePerm)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// Create thumbnail file
 	thumbnailFile, err := os.Create(thumbnailPath)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// Resize original image and write to thumbnail file
 	resizedImage := imaging.Fill(image, 128, 128, imaging.Center, imaging.Lanczos)
 	err = png.Encode(thumbnailFile, resizedImage)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	thumbnailFile.Close()
 
-	thumbnailFile, err = os.Open(thumbnailPath)
+	content, err := ioutil.ReadFile(thumbnailPath)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-
-	return thumbnailFile, nil
+	encoded := base64.StdEncoding.EncodeToString(content)
+	return encoded, nil
 }

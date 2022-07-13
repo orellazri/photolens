@@ -66,17 +66,15 @@ func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context)
 	}
 
 	// Generate/get thumbnail
-	thumbnailFile, err := core.GetThumbnail(context, media)
+	thumbnailString, err := core.GetThumbnail(context, media)
 	if err != nil {
 		log.Printf("Could not generate thumbnail! %v", err)
 		SendError(w, "Could not generate thumbnail")
 		return
 	}
-	defer thumbnailFile.Close()
 
-	// Send thumbnail file
-	w.Header().Set("Content-Type", "image/png")
-	io.Copy(w, thumbnailFile)
+	// Send thumbnail base64 encoded string
+	w.Write([]byte(thumbnailString))
 }
 
 func getAllThumbnails(w http.ResponseWriter, r *http.Request, context *core.Context) {

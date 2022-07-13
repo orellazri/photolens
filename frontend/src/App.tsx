@@ -7,8 +7,8 @@ function App() {
 
   useEffect(() => {
     const fetchMedia = async () => {
-      let res = await axios.get("/media/thumbnail/2", { responseType: "arraybuffer" });
-      setImage("data:image/png;base64," + Buffer.from(res.data, "binary").toString("base64"));
+      let res = await axios.get("/media/thumbnail/2");
+      setImage("data:image/png;base64," + res.data);
     };
 
     fetchMedia();
