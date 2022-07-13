@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { Divider, Grid, Typography } from "@mui/material";
+import { Container } from "@mui/system";
+
+import "./App.css";
 
 function App() {
   const [thumbnails, setThumbnails] = useState<Array<string>>([]);
@@ -16,13 +20,17 @@ function App() {
   }, []);
 
   return (
-    <div>
-      <h1>Photolens</h1>
-      <hr />
-      {thumbnails.map((image) => (
-        <img src={image} key={image} />
-      ))}
-    </div>
+    <Container maxWidth="xl">
+      <Typography variant="h3">Photolens</Typography>
+      <Divider />
+      <Grid container spacing={1} className="grid">
+        {thumbnails.map((image) => (
+          <Grid item>
+            <img src={image} key={image} />
+          </Grid>
+        ))}
+      </Grid>
+    </Container>
   );
 }
 
