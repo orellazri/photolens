@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Buffer } from "buffer";
 import axios from "axios";
 
 function App() {
