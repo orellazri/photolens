@@ -31,6 +31,9 @@ func SendError(w http.ResponseWriter, msg string) {
 	if err != nil {
 		return
 	}
+
+	w.WriteHeader(http.StatusBadRequest)
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResposne)
 }
 
