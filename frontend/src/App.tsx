@@ -5,14 +5,19 @@ import { Container } from "@mui/system";
 
 import "./App.css";
 
+type Thumbnail = {
+  id: number;
+  thumbnail: string;
+};
+
 function App() {
-  const [thumbnails, setThumbnails] = useState<Array<string>>([]);
+  const [thumbnails, setThumbnails] = useState<Array<Thumbnail>>([]);
 
   useEffect(() => {
     const fetchThumbnails = async () => {
       const res = await axios.get("/media/thumbnail/all");
-      for (let thumbnail of res.data.thumbnails) {
-        setThumbnails((images) => [...images, "data:image/png;base64," + thumbnail]);
+      for (let item of res.data.data) {
+        setThumbnails((images) => [...images, { id: item.id, thumbnail: "data:image/png;base64," + item.thumbnail }]);
       }
     };
 
@@ -25,8 +30,8 @@ function App() {
       <Divider />
       <Grid container spacing={1} className="grid">
         {thumbnails.map((image) => (
-          <Grid item>
-            <img src={image} key={image} />
+          <Grid item key={image.id}>
+            <img src={image.thumbnail} />
           </Grid>
         ))}
       </Grid>

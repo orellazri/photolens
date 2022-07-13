@@ -78,8 +78,13 @@ func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context)
 }
 
 func getAllThumbnails(w http.ResponseWriter, r *http.Request, context *core.Context) {
-	type allThumbnailsResponse struct {
-		Thumbnails []string `json:"thumbnails"`
+	type thumbnailResponse struct {
+		ID        int    `json:"id"`
+		Thumbnail string `json:"thumbnail"`
+	}
+
+	type response struct {
+		Data []thumbnailResponse `json:"data"`
 	}
 
 	// Get all media files from database
@@ -91,7 +96,7 @@ func getAllThumbnails(w http.ResponseWriter, r *http.Request, context *core.Cont
 		return
 	}
 
-	var thumbnails []string
+	var thumbnails []thumbnailResponse
 	// TODO: Look into doing this in parallel
 	for _, result := range results {
 		media, err := core.GetMediaFromID(int(result.ID), context)
@@ -106,10 +111,13 @@ func getAllThumbnails(w http.ResponseWriter, r *http.Request, context *core.Cont
 			SendError(w, "Could not get thumbnails")
 			return
 		}
-		thumbnails = append(thumbnails, thumbnailString)
+		thumbnails = append(thumbnails, thumbnailResponse{
+			ID:        int(result.ID),
+			Thumbnail: thumbnailString,
+		})
 	}
 
-	SendJsonResponse(w, allThumbnailsResponse{
-		Thumbnails: thumbnails,
+	SendJsonResponse(w, response{
+		Data: thumbnails,
 	})
 }
