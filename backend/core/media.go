@@ -1,6 +1,8 @@
 package core
 
 import (
+	"image"
+	"image/png"
 	"log"
 	"net/http"
 	"os"
@@ -8,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/disintegration/imaging"
 	"github.com/iafan/cwalk"
 	"github.com/orellazri/photolens/models"
 )
@@ -178,4 +181,57 @@ func GetMediaFromID(id int, context *Context) (*models.Media, error) {
 	}
 
 	return &media, nil
+}
+
+func GetThumbnail(context *Context, media *models.Media) (*os.File, error) {
+	// Check if thumbnail already exists before generating new one
+	if _, err := os.Stat(filepath.Join(filepath.Join(context.CachePath, "thumbnails", media.Path))); err == nil {
+		thumbnailFile, err := os.Open(filepath.Join(filepath.Join(context.CachePath, "thumbnails", media.Path)))
+		if err != nil {
+			return nil, err
+		}
+
+		return thumbnailFile, nil
+	}
+
+	// If we got here, the thumbnail doesn't exist already
+	// Open image
+	file, err := os.Open(filepath.Join(context.RootPath, media.Path))
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	// Decode image
+	image, _, err := image.Decode(file)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create directories for thumbnail according to original media file's path
+	err = os.MkdirAll(filepath.Join(context.CachePath, "thumbnails", filepath.Dir(media.Path)), os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create thumbnail file
+	thumbnailFile, err := os.Create(filepath.Join(context.CachePath, "thumbnails", media.Path))
+	if err != nil {
+		return nil, err
+	}
+
+	// Resize image and write to thumbnail file
+	resizedImage := imaging.Fill(image, 128, 128, imaging.Center, imaging.Lanczos)
+	err = png.Encode(thumbnailFile, resizedImage)
+	if err != nil {
+		return nil, err
+	}
+	thumbnailFile.Close()
+
+	thumbnailFile, err = os.Open(filepath.Join(filepath.Join(context.CachePath, "thumbnails", media.Path)))
+	if err != nil {
+		return nil, err
+	}
+
+	return thumbnailFile, nil
 }

@@ -2,16 +2,12 @@ package routes
 
 import (
 	"fmt"
-	"image"
-	"image/png"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 
-	"github.com/disintegration/imaging"
 	"github.com/gorilla/mux"
 	"github.com/orellazri/photolens/core"
 )
@@ -67,57 +63,11 @@ func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context)
 		return
 	}
 
-	// TODO: Check if thumbnail already exists before generating new one
-
-	// TODO: Move thumbnail generation to separate function in core
-
-	// Open image
-	file, err := os.Open(filepath.Join(context.RootPath, media.Path))
+	// Generate/get thumbnail
+	thumbnailFile, err := core.GetThumbnail(context, media)
 	if err != nil {
-		log.Printf("Could not load media %d! %v", id, err)
-		SendError(w, "Could not load media")
-		return
-	}
-	defer file.Close()
-
-	// Decode image
-	image, _, err := image.Decode(file)
-	if err != nil {
-		log.Printf("Could not decode image! %v", err)
-		SendError(w, "Could not decode image")
-		return
-	}
-
-	// Create directories for thumbnail according to original media file's path
-	err = os.MkdirAll(filepath.Join(context.CachePath, "thumbnails", filepath.Dir(media.Path)), os.ModePerm)
-	if err != nil {
-		log.Printf("Could not create directories for thumbnail image file! %v", err)
-		SendError(w, "Could not create thumbnail image file")
-		return
-	}
-
-	// Create thumbnail file
-	thumbnailFile, err := os.Create(filepath.Join(context.CachePath, "thumbnails", media.Path))
-	if err != nil {
-		log.Printf("Could not create thumbnail image file! %v", err)
-		SendError(w, "Could not create thumbnail image file")
-		return
-	}
-
-	// Resize image and write to thumbnail file
-	resizedImage := imaging.Fill(image, 128, 128, imaging.Center, imaging.Lanczos)
-	err = png.Encode(thumbnailFile, resizedImage)
-	if err != nil {
-		log.Printf("Could not encode thumbnail! %v", err)
-		SendError(w, "Could not encode thumbnail")
-		return
-	}
-	thumbnailFile.Close()
-
-	thumbnailFile, err = os.Open(filepath.Join(filepath.Join(context.CachePath, "thumbnails", media.Path)))
-	if err != nil {
-		log.Printf("Could not load thumbnail! %v", err)
-		SendError(w, "Could not load thumbnail")
+		log.Printf("Could not generate thumbnail! %v", err)
+		SendError(w, "Could not generate thumbnail")
 		return
 	}
 	defer thumbnailFile.Close()
