@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"image"
 	"image/png"
 	"log"
@@ -183,10 +184,13 @@ func GetMediaFromID(id int, context *Context) (*models.Media, error) {
 	return &media, nil
 }
 
+// Generate a thumbnail for a given image or fetch from cache if existing
+// Make sure to close the returned file when calling this function
 func GetThumbnail(context *Context, media *models.Media) (*os.File, error) {
+	thumbnailPath := filepath.Join(filepath.Join(context.CachePath, "thumbnails", fmt.Sprintf("%s.png", media.Path)))
 	// Check if thumbnail already exists before generating new one
-	if _, err := os.Stat(filepath.Join(filepath.Join(context.CachePath, "thumbnails", media.Path))); err == nil {
-		thumbnailFile, err := os.Open(filepath.Join(filepath.Join(context.CachePath, "thumbnails", media.Path)))
+	if _, err := os.Stat(thumbnailPath); err == nil {
+		thumbnailFile, err := os.Open(thumbnailPath)
 		if err != nil {
 			return nil, err
 		}
@@ -195,14 +199,14 @@ func GetThumbnail(context *Context, media *models.Media) (*os.File, error) {
 	}
 
 	// If we got here, the thumbnail doesn't exist already
-	// Open image
+	// Open original image
 	file, err := os.Open(filepath.Join(context.RootPath, media.Path))
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	// Decode image
+	// Decode original image
 	image, _, err := image.Decode(file)
 	if err != nil {
 		return nil, err
@@ -215,12 +219,12 @@ func GetThumbnail(context *Context, media *models.Media) (*os.File, error) {
 	}
 
 	// Create thumbnail file
-	thumbnailFile, err := os.Create(filepath.Join(context.CachePath, "thumbnails", media.Path))
+	thumbnailFile, err := os.Create(thumbnailPath)
 	if err != nil {
 		return nil, err
 	}
 
-	// Resize image and write to thumbnail file
+	// Resize original image and write to thumbnail file
 	resizedImage := imaging.Fill(image, 128, 128, imaging.Center, imaging.Lanczos)
 	err = png.Encode(thumbnailFile, resizedImage)
 	if err != nil {
@@ -228,7 +232,7 @@ func GetThumbnail(context *Context, media *models.Media) (*os.File, error) {
 	}
 	thumbnailFile.Close()
 
-	thumbnailFile, err = os.Open(filepath.Join(filepath.Join(context.CachePath, "thumbnails", media.Path)))
+	thumbnailFile, err = os.Open(thumbnailPath)
 	if err != nil {
 		return nil, err
 	}
