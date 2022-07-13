@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/orellazri/photolens/core"
@@ -79,8 +80,9 @@ func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context)
 
 func getAllThumbnails(w http.ResponseWriter, r *http.Request, context *core.Context) {
 	type thumbnailResponse struct {
-		ID        int    `json:"id"`
-		Thumbnail string `json:"thumbnail"`
+		ID        int       `json:"id"`
+		Thumbnail string    `json:"thumbnail"`
+		CreatedAt time.Time `json:"created_at"`
 	}
 
 	type response struct {
@@ -89,7 +91,7 @@ func getAllThumbnails(w http.ResponseWriter, r *http.Request, context *core.Cont
 
 	// Get all media files from database
 	var results []models.Media
-	err := context.DB.Select("id").Find(&results).Error
+	err := context.DB.Select("id", "created_at").Find(&results).Error
 	if err != nil {
 		log.Printf("Could not get media from database! %v", err)
 		SendError(w, "Could not get all thumbnails")
@@ -114,6 +116,7 @@ func getAllThumbnails(w http.ResponseWriter, r *http.Request, context *core.Cont
 		thumbnails = append(thumbnails, thumbnailResponse{
 			ID:        int(result.ID),
 			Thumbnail: thumbnailString,
+			CreatedAt: result.CreatedAt,
 		})
 	}
 

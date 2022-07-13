@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Divider, Grid, Skeleton, Typography } from "@mui/material";
+import { Card, CardContent, CardMedia, Divider, Grid, Skeleton, Typography } from "@mui/material";
 import { Container } from "@mui/system";
 
 import "./App.css";
+import moment from "moment";
 
 type Thumbnail = {
   id: number;
-  thumbnail: string;
+  image: string;
+  createdAt: string;
 };
 
 function App() {
@@ -18,7 +20,14 @@ function App() {
       await new Promise((r) => setTimeout(r, 2000));
       const res = await axios.get("/media/thumbnail/all");
       for (let item of res.data.data) {
-        setThumbnails((images) => [...images, { id: item.id, thumbnail: "data:image/png;base64," + item.thumbnail }]);
+        setThumbnails((thumbnails) => [
+          ...thumbnails,
+          {
+            id: item.id,
+            image: "data:image/png;base64," + item.thumbnail,
+            createdAt: moment(item.created_at).local().format("DD/MM/YYYY HH:mm:ss"),
+          },
+        ]);
       }
     };
 
@@ -32,10 +41,17 @@ function App() {
       <Grid container spacing={1} className="grid">
         {thumbnails.length
           ? //  Show thumbnails grid
-            thumbnails.map((image, i) => (
+            thumbnails.map((thumbnail, i) => (
               <Grid item key={i}>
-                <a href={`${global.API_URL}/media/${image.id}`}>
-                  <img src={image.thumbnail} />
+                <a href={`${global.API_URL}/media/${thumbnail.id}`}>
+                  <Card>
+                    <CardMedia component="img" height="128" image={thumbnail.image} alt={thumbnail.id.toString()} />
+                    <CardContent>
+                      <Typography sx={{ fontSize: 14 }} color="text.secondary" align="center" gutterBottom>
+                        {thumbnail.createdAt}
+                      </Typography>
+                    </CardContent>
+                  </Card>
                 </a>
               </Grid>
             ))
