@@ -31,7 +31,9 @@ function App() {
       <Grid container spacing={1} className="grid">
         {thumbnails.map((image) => (
           <Grid item key={image.id}>
-            <img src={image.thumbnail} />
+            <a href={`${global.API_URL}/media/${image.id}`}>
+              <img src={image.thumbnail} />
+            </a>
           </Grid>
         ))}
       </Grid>

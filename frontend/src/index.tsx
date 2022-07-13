@@ -10,7 +10,11 @@ import App from "./App";
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 
-axios.defaults.baseURL = "http://localhost:5000";
+// Set global variables
+global.API_URL = "http://localhost:5000";
+
+// Set axios defaults
+axios.defaults.baseURL = global.API_URL;
 axios.defaults.headers.post["Content-Type"] = "application/json";
 
 root.render(<App />);
