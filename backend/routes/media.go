@@ -78,14 +78,38 @@ func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context)
 }
 
 func getAllThumbnails(w http.ResponseWriter, r *http.Request, context *core.Context) {
+	type allThumbnailsResponse struct {
+		Thumbnails []string `json:"thumbnails"`
+	}
+
 	// Get all media files from database
 	var results []models.Media
-	err := context.DB.Select("id", "path", "last_modified").Find(&results).Error
+	err := context.DB.Select("id").Find(&results).Error
 	if err != nil {
 		log.Printf("Could not get media from database! %v", err)
 		SendError(w, "Could not get all thumbnails")
 		return
 	}
 
-	SendError(w, "WIP")
+	var thumbnails []string
+	// TODO: Look into doing this in parallel
+	for _, result := range results {
+		media, err := core.GetMediaFromID(int(result.ID), context)
+		if err != nil {
+			log.Printf("Could not get media from ID! %v", err)
+			SendError(w, "Could not get thumbnails")
+			return
+		}
+		thumbnailString, err := core.GetThumbnail(context, media)
+		if err != nil {
+			log.Printf("Could not get thumbnail for image! %v", err)
+			SendError(w, "Could not get thumbnails")
+			return
+		}
+		thumbnails = append(thumbnails, thumbnailString)
+	}
+
+	SendJsonResponse(w, allThumbnailsResponse{
+		Thumbnails: thumbnails,
+	})
 }

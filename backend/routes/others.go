@@ -2,8 +2,21 @@ package routes
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
+
+func SendJsonResponse(w http.ResponseWriter, response interface{}) {
+	jsonResposne, err := json.Marshal(response)
+	if err != nil {
+		log.Printf("Could not send json response! %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("An error occurred"))
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResposne)
+}
 
 type MessageResponse struct {
 	Message string `json:"message"`
@@ -11,30 +24,18 @@ type MessageResponse struct {
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	response := MessageResponse{
+	SendJsonResponse(w, MessageResponse{
 		Message: "Welcome to Photolens API",
 		Error:   false,
-	}
-	jsonResposne, err := json.Marshal(response)
-	if err != nil {
-		return
-	}
-	w.Write(jsonResposne)
+	})
 }
 
 func SendError(w http.ResponseWriter, msg string) {
-	response := MessageResponse{
+	w.WriteHeader(http.StatusBadRequest)
+	SendJsonResponse(w, MessageResponse{
 		Message: msg,
 		Error:   true,
-	}
-	jsonResposne, err := json.Marshal(response)
-	if err != nil {
-		return
-	}
-
-	w.WriteHeader(http.StatusBadRequest)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonResposne)
+	})
 }
 
 func CorsMiddleware(next http.Handler) http.Handler {
