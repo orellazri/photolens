@@ -128,7 +128,10 @@ func ProcessMedia(context *Context) error {
 			continue
 		}
 
-		// TODO: Proprely index file (generate thumbnails, etc.)
+		// Generate thumbnail in the background
+		// TODO: Error handling (wait for all thumbnails to finish at the end of processing
+		// 		 and check for errors)
+		go GetThumbnail(context, &models.Media{Path: path})
 
 		// Try to create photo in database, or update last modified time if
 		// it already exists
@@ -186,7 +189,7 @@ func GetMediaFromID(id int, context *Context) (*models.Media, error) {
 	return &media, nil
 }
 
-// Generate a thumbnail for a given image or fetch from cache if existing
+// Fetch an existing thumbnail or generate a new one if it doesn't exist already
 // Returns the thumnail image in a base64 encoded string
 func GetThumbnail(context *Context, media *models.Media) (string, error) {
 	thumbnailPath := filepath.Join(context.CachePath, "thumbnails", fmt.Sprintf("%s.png", media.Path))
@@ -201,6 +204,13 @@ func GetThumbnail(context *Context, media *models.Media) (string, error) {
 	}
 
 	// If we got here, the thumbnail doesn't exist already
+	// so we generate one and return it
+	return generateThumbnail(context, media, thumbnailPath)
+}
+
+// Generate a thumbnail for a given image
+// Returns the thumbnail image in a base64 encoded string
+func generateThumbnail(context *Context, media *models.Media, thumbnailPath string) (string, error) {
 	// Open original image
 	file, err := os.Open(filepath.Join(context.RootPath, media.Path))
 	if err != nil {
