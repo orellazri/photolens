@@ -12,22 +12,43 @@ type Thumbnail = {
   createdAt: string;
 };
 
+type Metadata = {
+  id: number;
+  createdAt: string;
+};
+
 function App() {
+  const [metadata, setMetadata] = useState<Array<Metadata>>([]);
   const [thumbnails, setThumbnails] = useState<Array<Thumbnail>>([]);
 
   useEffect(() => {
+    const fetchMetadata = async () => {
+      try {
+        const res = await axios.get("/media/meta");
+        setMetadata(res.data.data);
+      } catch (e) {
+        console.error("Could not fetch metadata! " + e);
+      }
+    };
+
     const fetchThumbnails = async () => {
+      await fetchMetadata();
+
       await new Promise((r) => setTimeout(r, 2000));
-      const res = await axios.get("/media/thumbnail/all");
-      for (let item of res.data.data) {
-        setThumbnails((thumbnails) => [
-          ...thumbnails,
-          {
-            id: item.id,
-            image: "data:image/png;base64," + item.thumbnail,
-            createdAt: moment(item.created_at).local().format("DD/MM/YYYY HH:mm:ss"),
-          },
-        ]);
+      try {
+        const res = await axios.get("/media/thumbnail/all");
+        for (let item of res.data.data) {
+          setThumbnails((thumbnails) => [
+            ...thumbnails,
+            {
+              id: item.id,
+              image: "data:image/png;base64," + item.thumbnail,
+              createdAt: moment(item.created_at).local().format("DD/MM/YYYY HH:mm:ss"),
+            },
+          ]);
+        }
+      } catch (e) {
+        console.error("Could not fetch thumbnails! " + e);
       }
     };
 
@@ -56,7 +77,7 @@ function App() {
               </Grid>
             ))
           : // Show placeholder grid
-            [...Array(5)].map((x, i) => (
+            metadata.map((x, i) => (
               <Grid item key={i}>
                 <Skeleton variant="rectangular" width={128} height={128} />
               </Grid>

@@ -28,7 +28,7 @@ func getMetadata(w http.ResponseWriter, r *http.Request, context *core.Context) 
 	}
 
 	type response struct {
-		Data []mediaMetadataResponse
+		Data []mediaMetadataResponse `json:"data"`
 	}
 
 	// Get all media files from database
