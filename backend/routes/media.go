@@ -84,6 +84,16 @@ func getMedia(w http.ResponseWriter, r *http.Request, context *core.Context) {
 }
 
 func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context) {
+	type thumbnailResponse struct {
+		ID        uint      `json:"id"`
+		Thumbnail string    `json:"thumbnail"`
+		CreatedAt time.Time `json:"created_at"`
+	}
+
+	type response struct {
+		Data thumbnailResponse `json:"data"`
+	}
+
 	// Convert id to number
 	idStr := mux.Vars(r)["id"]
 	id, err := strconv.Atoi(idStr)
@@ -108,12 +118,18 @@ func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context)
 	}
 
 	// Send thumbnail base64 encoded string
-	w.Write([]byte(thumbnailString))
+	SendJsonResponse(w, response{
+		Data: thumbnailResponse{
+			ID:        media.ID,
+			Thumbnail: thumbnailString,
+			CreatedAt: media.CreatedAt,
+		},
+	})
 }
 
 func getAllThumbnails(w http.ResponseWriter, r *http.Request, context *core.Context) {
 	type thumbnailResponse struct {
-		ID        int       `json:"id"`
+		ID        uint      `json:"id"`
 		Thumbnail string    `json:"thumbnail"`
 		CreatedAt time.Time `json:"created_at"`
 	}
@@ -147,7 +163,7 @@ func getAllThumbnails(w http.ResponseWriter, r *http.Request, context *core.Cont
 			return
 		}
 		thumbnails = append(thumbnails, thumbnailResponse{
-			ID:        int(result.ID),
+			ID:        result.ID,
 			Thumbnail: thumbnailString,
 			CreatedAt: result.CreatedAt,
 		})

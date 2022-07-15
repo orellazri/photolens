@@ -21,29 +21,45 @@ function App() {
   const [metadata, setMetadata] = useState<Array<Metadata>>([]);
   const [thumbnails, setThumbnails] = useState<Array<Thumbnail>>([]);
 
+  // Fetch metadata on page load
   useEffect(() => {
     const fetchMetadata = async () => {
       try {
-        const res = await axios.get("/media/meta");
-        setMetadata(res.data.data);
+        const {
+          data: { data },
+        } = await axios.get("/media/meta");
+        for (const result of data) {
+          setMetadata((metadata) => [
+            ...metadata,
+            {
+              id: result.id,
+              createdAt: result.created_at,
+            },
+          ]);
+        }
       } catch (e) {
         console.error("Could not fetch metadata! " + e);
       }
     };
 
-    const fetchThumbnails = async () => {
-      await fetchMetadata();
+    fetchMetadata();
+  }, []);
 
-      await new Promise((r) => setTimeout(r, 2000));
+  // Fetch thumbnails after fetching
+  useEffect(() => {
+    const fetchThumbnails = async () => {
       try {
-        const res = await axios.get("/media/thumbnail/all");
-        for (let item of res.data.data) {
+        for (let item of metadata) {
+          const {
+            data: { data },
+          } = await axios.get("/media/thumbnail/" + item.id);
+
           setThumbnails((thumbnails) => [
             ...thumbnails,
             {
-              id: item.id,
-              image: "data:image/png;base64," + item.thumbnail,
-              createdAt: moment(item.created_at).local().format("DD/MM/YYYY HH:mm:ss"),
+              id: data.id,
+              image: "data:image/png;base64," + data.thumbnail,
+              createdAt: moment(data.created_at).local().format("DD/MM/YYYY HH:mm:ss"),
             },
           ]);
         }
@@ -53,7 +69,7 @@ function App() {
     };
 
     fetchThumbnails();
-  }, []);
+  }, [metadata]);
 
   return (
     <Container maxWidth="xl">
