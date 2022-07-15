@@ -76,28 +76,26 @@ function App() {
       <Typography variant="h3">Photolens</Typography>
       <Divider />
       <Grid container spacing={1} className="grid">
-        {thumbnails.length == metadata.length
-          ? //  Show thumbnails grid
-            thumbnails.map((thumbnail, i) => (
-              <Grid item key={i}>
-                <a href={`${global.API_URL}/media/${thumbnail.id}`}>
-                  <Card>
-                    <CardMedia component="img" height="128" image={thumbnail.image} alt={thumbnail.id.toString()} />
-                    <CardContent>
-                      <Typography sx={{ fontSize: 14 }} color="text.secondary" align="center" gutterBottom>
-                        {thumbnail.createdAt}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </a>
-              </Grid>
-            ))
-          : // Show placeholder grid
-            metadata.map((x, i) => (
-              <Grid item key={i}>
-                <Skeleton variant="rectangular" width={128} height={128} />
-              </Grid>
-            ))}
+        {metadata.map((_, i) =>
+          thumbnails[i] ? (
+            <Grid item key={i}>
+              <a href={`${global.API_URL}/media/${thumbnails[i].id}`}>
+                <Card>
+                  <CardMedia component="img" height="128" image={thumbnails[i].image} alt={thumbnails[i].id.toString()} />
+                  <CardContent>
+                    <Typography sx={{ fontSize: 14 }} color="text.secondary" align="center" gutterBottom>
+                      {thumbnails[i].createdAt}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </a>
+            </Grid>
+          ) : (
+            <Grid item key={i}>
+              <Skeleton variant="rectangular" width={190} height={195} />
+            </Grid>
+          )
+        )}
       </Grid>
     </Container>
   );
