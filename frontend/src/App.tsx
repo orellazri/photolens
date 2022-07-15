@@ -57,7 +57,7 @@ function App() {
             ))
           : // Show placeholder grid
             [...Array(5)].map((x, i) => (
-              <Grid item>
+              <Grid item key={i}>
                 <Skeleton variant="rectangular" width={128} height={128} />
               </Grid>
             ))}
