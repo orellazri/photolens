@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Card, CardContent, CardMedia, Divider, Grid, Skeleton, Typography } from "@mui/material";
 import { Container } from "@mui/system";
+import moment from "moment";
 
 import "./App.css";
-import moment from "moment";
+import Logo from "./components/Logo";
 
 type Thumbnail = {
   id: number;
@@ -73,7 +74,7 @@ function App() {
 
   return (
     <Container maxWidth="xl">
-      <Typography variant="h3">Photolens</Typography>
+      <Logo />
       <Divider />
       <Grid container spacing={1} className="grid">
         {metadata.map((_, i) =>
