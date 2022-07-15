@@ -15,9 +15,42 @@ import (
 )
 
 func RegisterMediaRouter(context *core.Context, router *mux.Router) {
+	router.HandleFunc("/meta", func(w http.ResponseWriter, r *http.Request) { getMetadata(w, r, context) }).Methods("GET")
 	router.HandleFunc("/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) { getMedia(w, r, context) }).Methods("GET")
 	router.HandleFunc("/thumbnail/all", func(w http.ResponseWriter, r *http.Request) { getAllThumbnails(w, r, context) }).Methods("GET")
 	router.HandleFunc("/thumbnail/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) { getThumbnail(w, r, context) }).Methods("GET")
+}
+
+func getMetadata(w http.ResponseWriter, r *http.Request, context *core.Context) {
+	type mediaMetadataResponse struct {
+		ID        uint      `json:"id"`
+		CreatedAt time.Time `json:"created_at"`
+	}
+
+	type response struct {
+		Data []mediaMetadataResponse
+	}
+
+	// Get all media files from database
+	var results []models.Media
+	err := context.DB.Select("id", "created_at").Find(&results).Error
+	if err != nil {
+		log.Printf("Could not get media from database! %v", err)
+		SendError(w, "Could not get metadata")
+		return
+	}
+
+	var metadatas []mediaMetadataResponse
+	for _, result := range results {
+		metadatas = append(metadatas, mediaMetadataResponse{
+			ID:        result.ID,
+			CreatedAt: result.CreatedAt,
+		})
+	}
+
+	SendJsonResponse(w, response{
+		Data: metadatas,
+	})
 }
 
 func getMedia(w http.ResponseWriter, r *http.Request, context *core.Context) {
