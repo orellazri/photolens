@@ -76,7 +76,7 @@ function App() {
       <Typography variant="h3">Photolens</Typography>
       <Divider />
       <Grid container spacing={1} className="grid">
-        {thumbnails.length
+        {thumbnails.length == metadata.length
           ? //  Show thumbnails grid
             thumbnails.map((thumbnail, i) => (
               <Grid item key={i}>
