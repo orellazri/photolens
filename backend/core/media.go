@@ -157,7 +157,10 @@ func ProcessMedia(context *Context) error {
 				return err
 			}
 
-			// TODO: Properly delete remains (thumbnails, etc.)
+			err = os.Remove(getThumbnailPath(context, &result))
+			if err != nil && !strings.Contains(err.Error(), "no such file") {
+				return err
+			}
 
 			numDeleted += 1
 		}
@@ -189,10 +192,16 @@ func GetMediaFromID(id int, context *Context) (*models.Media, error) {
 	return &media, nil
 }
 
+// Returns the path of the thumbnail file for the given media file
+func getThumbnailPath(context *Context, media *models.Media) string {
+	return filepath.Join(context.CachePath, "thumbnails", fmt.Sprintf("%s.png", media.Path))
+}
+
 // Fetch an existing thumbnail or generate a new one if it doesn't exist already
 // Returns the thumnail image in a base64 encoded string
 func GetThumbnail(context *Context, media *models.Media) (string, error) {
-	thumbnailPath := filepath.Join(context.CachePath, "thumbnails", fmt.Sprintf("%s.png", media.Path))
+	thumbnailPath := getThumbnailPath(context, media)
+
 	// Check if thumbnail already exists before generating new one
 	if _, err := os.Stat(thumbnailPath); err == nil {
 		content, err := ioutil.ReadFile(thumbnailPath)
