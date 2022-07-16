@@ -34,10 +34,21 @@ func getMetadata(w http.ResponseWriter, r *http.Request, context *core.Context) 
 	// Get parameters
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+	sortDirParam := r.URL.Query().Get("sortdir")
+	sortDir := "desc"
+	if sortDirParam == "asc" {
+		sortDir = sortDirParam
+	}
 
 	// Get all media files from database
 	var results []models.Media
-	err := context.DB.Limit(limit).Offset(offset).Select("id", "created_at").Find(&results).Error
+	err := context.DB.
+		Limit(limit).
+		Offset(offset).
+		Order(fmt.Sprintf("created_at %s", sortDir)).
+		Select("id", "created_at").
+		Find(&results).
+		Error
 	if err != nil {
 		log.Printf("Could not get media from database! %v", err)
 		SendError(w, "Could not get metadata")
