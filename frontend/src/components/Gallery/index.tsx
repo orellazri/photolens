@@ -1,24 +1,11 @@
 import { useState, useEffect } from "react";
+import { Card, CardContent, CardMedia, Grid, Skeleton, Typography } from "@mui/material";
 import axios from "axios";
-import { Card, CardContent, CardMedia, Divider, Grid, Skeleton, Typography } from "@mui/material";
-import { Container } from "@mui/system";
 import moment from "moment";
 
-import "./HomePage.css";
-import Logo from "../components/Logo";
+import "./style.css";
 
-type Thumbnail = {
-  id: number;
-  image: string;
-  createdAt: string;
-};
-
-type Metadata = {
-  id: number;
-  createdAt: string;
-};
-
-function HomePage() {
+export default function Gallery() {
   const [metadata, setMetadata] = useState<Array<Metadata>>([]);
   const [thumbnails, setThumbnails] = useState<Array<Thumbnail>>([]);
 
@@ -73,33 +60,27 @@ function HomePage() {
   }, [metadata]);
 
   return (
-    <Container maxWidth="xl">
-      <Logo />
-      <Divider />
-      <Grid container spacing={1} className="grid">
-        {metadata.map((_, i) =>
-          thumbnails[i] ? (
-            <Grid item key={i}>
-              <a href={`${global.API_URL}/media/${thumbnails[i].id}`}>
-                <Card>
-                  <CardMedia component="img" height="128" image={thumbnails[i].image} alt={thumbnails[i].id.toString()} />
-                  <CardContent>
-                    <Typography sx={{ fontSize: 14 }} color="text.secondary" align="center" gutterBottom>
-                      {thumbnails[i].createdAt}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </a>
-            </Grid>
-          ) : (
-            <Grid item key={i}>
-              <Skeleton variant="rectangular" width={190} height={195} />
-            </Grid>
-          )
-        )}
-      </Grid>
-    </Container>
+    <Grid container spacing={1} className="grid">
+      {metadata.map((_, i) =>
+        thumbnails[i] ? (
+          <Grid item key={i}>
+            <a href={`${global.API_URL}/media/${thumbnails[i].id}`}>
+              <Card>
+                <CardMedia component="img" height="128" image={thumbnails[i].image} alt={thumbnails[i].id.toString()} />
+                <CardContent>
+                  <Typography sx={{ fontSize: 14 }} color="text.secondary" align="center" gutterBottom>
+                    {thumbnails[i].createdAt}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </a>
+          </Grid>
+        ) : (
+          <Grid item key={i}>
+            <Skeleton variant="rectangular" width={190} height={195} />
+          </Grid>
+        )
+      )}
+    </Grid>
   );
 }
-
-export default HomePage;
