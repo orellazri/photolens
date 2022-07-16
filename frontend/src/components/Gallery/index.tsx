@@ -1,18 +1,32 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardMedia, Grid, Skeleton, Typography } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  CardMedia,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  Skeleton,
+  Typography,
+} from "@mui/material";
 import axios from "axios";
 import moment from "moment";
 
 import "./style.css";
+import { Box } from "@mui/system";
 
 type GalleryProps = {
   limit?: Number;
   offset?: Number;
 };
 
-export default function Gallery({ limit, offset }: GalleryProps) {
+export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
   const [metadata, setMetadata] = useState<Array<Metadata>>([]);
   const [thumbnails, setThumbnails] = useState<Array<Thumbnail>>([]);
+  const [sortDir, setSortDir] = useState<string>("desc");
 
   // Fetch metadata on page load
   useEffect(() => {
@@ -20,7 +34,7 @@ export default function Gallery({ limit, offset }: GalleryProps) {
       try {
         const {
           data: { data },
-        } = await axios.get(`/media/meta?limit=${limit}&offset=${offset}`);
+        } = await axios.get(`/media/meta?limit=${limit}&offset=${offset}&sortdir=${sortDir}`);
         for (const result of data) {
           setMetadata((metadata) => [
             ...metadata,
@@ -35,8 +49,9 @@ export default function Gallery({ limit, offset }: GalleryProps) {
       }
     };
 
+    setMetadata([]);
     fetchMetadata();
-  }, []);
+  }, [limit, offset, sortDir]);
 
   // Fetch thumbnails after fetching
   useEffect(() => {
@@ -61,31 +76,51 @@ export default function Gallery({ limit, offset }: GalleryProps) {
       }
     };
 
+    setThumbnails([]);
     fetchThumbnails();
   }, [metadata]);
 
+  const handleChangeSortDir = (event: SelectChangeEvent) => {
+    setSortDir(event.target.value as string);
+  };
+
   return (
-    <Grid container spacing={1} className="grid">
-      {metadata.map((_, i) =>
-        thumbnails[i] ? (
-          <Grid item key={i}>
-            <a href={`${global.API_URL}/media/${thumbnails[i].id}`}>
-              <Card>
-                <CardMedia component="img" height="128" image={thumbnails[i].image} alt={thumbnails[i].id.toString()} />
-                <CardContent>
-                  <Typography sx={{ fontSize: 14 }} color="text.secondary" align="center" gutterBottom>
-                    {thumbnails[i].createdAt}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </a>
-          </Grid>
-        ) : (
-          <Grid item key={i}>
-            <Skeleton variant="rectangular" width={190} height={195} />
-          </Grid>
-        )
-      )}
-    </Grid>
+    <Box>
+      <Box className="form">
+        <FormControl>
+          <InputLabel>Sort Direction</InputLabel>
+          <Select value={sortDir} label="Sort Direction" onChange={handleChangeSortDir}>
+            <MenuItem value="desc">Descending</MenuItem>
+            <MenuItem value="asc">Ascending</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
+      {/* Grid */}
+      <Grid container spacing={1} className="grid">
+        {metadata.map((_, i) =>
+          thumbnails[i] ? (
+            // Thumbnails
+            <Grid item key={i}>
+              <a href={`${global.API_URL}/media/${thumbnails[i].id}`}>
+                <Card>
+                  <CardMedia component="img" height="128" image={thumbnails[i].image} alt={thumbnails[i].id.toString()} />
+                  <CardContent>
+                    <Typography sx={{ fontSize: 14 }} color="text.secondary" align="center" gutterBottom>
+                      {thumbnails[i].createdAt}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </a>
+            </Grid>
+          ) : (
+            // Placeholders
+            <Grid item key={i}>
+              <Skeleton variant="rectangular" width={190} height={195} />
+            </Grid>
+          )
+        )}
+      </Grid>
+    </Box>
   );
 }
