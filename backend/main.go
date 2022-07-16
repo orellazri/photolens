@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/orellazri/photolens/core"
@@ -30,7 +32,11 @@ func main() {
 		CachePath: "./cache",
 	}
 
-	// TODO: Create root directory, cache directory and cache/thumbnails directory if they don't exist yet
+	// Create cache directory
+	err = os.Mkdir(context.CachePath, os.ModePerm)
+	if err != nil && !strings.Contains(err.Error(), "file exists") {
+		log.Fatalf("Could not create cache directory! %v", err)
+	}
 
 	// Process media
 	err = core.ProcessMedia(&context)
