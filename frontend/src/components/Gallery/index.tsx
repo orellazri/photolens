@@ -5,7 +5,12 @@ import moment from "moment";
 
 import "./style.css";
 
-export default function Gallery() {
+type GalleryProps = {
+  limit?: Number;
+  offset?: Number;
+};
+
+export default function Gallery({ limit, offset }: GalleryProps) {
   const [metadata, setMetadata] = useState<Array<Metadata>>([]);
   const [thumbnails, setThumbnails] = useState<Array<Thumbnail>>([]);
 
@@ -15,7 +20,7 @@ export default function Gallery() {
       try {
         const {
           data: { data },
-        } = await axios.get("/media/meta");
+        } = await axios.get(`/media/meta?limit=${limit}&offset=${offset}`);
         for (const result of data) {
           setMetadata((metadata) => [
             ...metadata,

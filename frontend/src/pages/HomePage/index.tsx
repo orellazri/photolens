@@ -8,9 +8,7 @@ export default function HomePage() {
   return (
     <Container maxWidth="xl">
       <Logo />
-      <div className="gallery">
-        <Gallery />
-      </div>
+      <Gallery />
     </Container>
   );
 }
