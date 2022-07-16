@@ -4,8 +4,8 @@ import { Card, CardContent, CardMedia, Divider, Grid, Skeleton, Typography } fro
 import { Container } from "@mui/system";
 import moment from "moment";
 
-import "./App.css";
-import Logo from "./components/Logo";
+import "./HomePage.css";
+import Logo from "../components/Logo";
 
 type Thumbnail = {
   id: number;
@@ -18,7 +18,7 @@ type Metadata = {
   createdAt: string;
 };
 
-function App() {
+function HomePage() {
   const [metadata, setMetadata] = useState<Array<Metadata>>([]);
   const [thumbnails, setThumbnails] = useState<Array<Thumbnail>>([]);
 
@@ -102,4 +102,4 @@ function App() {
   );
 }
 
-export default App;
+export default HomePage;
