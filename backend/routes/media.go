@@ -31,9 +31,13 @@ func getMetadata(w http.ResponseWriter, r *http.Request, context *core.Context) 
 		Data []mediaMetadataResponse `json:"data"`
 	}
 
+	// Get parameters
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+
 	// Get all media files from database
 	var results []models.Media
-	err := context.DB.Select("id", "created_at").Find(&results).Error
+	err := context.DB.Limit(limit).Offset(offset).Select("id", "created_at").Find(&results).Error
 	if err != nil {
 		log.Printf("Could not get media from database! %v", err)
 		SendError(w, "Could not get metadata")
@@ -58,7 +62,7 @@ func getMedia(w http.ResponseWriter, r *http.Request, context *core.Context) {
 	idStr := mux.Vars(r)["id"]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		SendError(w, fmt.Sprintf("Invalid id %v", id))
+		SendError(w, fmt.Sprintf("Invalid id %v", idStr))
 		return
 	}
 
