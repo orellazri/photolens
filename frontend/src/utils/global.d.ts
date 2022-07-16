@@ -5,11 +5,11 @@ declare global {
     id: number;
     image: string;
     createdAt: string;
+    lastModified: string;
   };
 
   type Metadata = {
     id: number;
-    createdAt: string;
   };
 }
 

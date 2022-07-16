@@ -23,13 +23,8 @@ func RegisterMediaRouter(context *core.Context, router *mux.Router) {
 }
 
 func getMetadata(w http.ResponseWriter, r *http.Request, context *core.Context) {
-	type mediaMetadataResponse struct {
-		ID        uint      `json:"id"`
-		CreatedAt time.Time `json:"created_at"`
-	}
-
 	type response struct {
-		Data []mediaMetadataResponse `json:"data"`
+		Data []uint `json:"data"`
 	}
 
 	// Get parameters
@@ -54,7 +49,7 @@ func getMetadata(w http.ResponseWriter, r *http.Request, context *core.Context) 
 		Limit(limit).
 		Offset(offset).
 		Order(fmt.Sprintf("%s %s", sortBy, sortDir)).
-		Select("id", "created_at").
+		Select("id").
 		Find(&results).
 		Error
 	if err != nil {
@@ -63,12 +58,9 @@ func getMetadata(w http.ResponseWriter, r *http.Request, context *core.Context) 
 		return
 	}
 
-	var metadatas []mediaMetadataResponse
+	var metadatas []uint
 	for _, result := range results {
-		metadatas = append(metadatas, mediaMetadataResponse{
-			ID:        result.ID,
-			CreatedAt: result.CreatedAt,
-		})
+		metadatas = append(metadatas, result.ID)
 	}
 
 	SendJsonResponse(w, response{
@@ -108,9 +100,10 @@ func getMedia(w http.ResponseWriter, r *http.Request, context *core.Context) {
 
 func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context) {
 	type thumbnailResponse struct {
-		ID        uint      `json:"id"`
-		Thumbnail string    `json:"thumbnail"`
-		CreatedAt time.Time `json:"created_at"`
+		ID           uint      `json:"id"`
+		Thumbnail    string    `json:"thumbnail"`
+		CreatedAt    time.Time `json:"created_at"`
+		LastModified time.Time `json:"last_modified"`
 	}
 
 	type response struct {
@@ -143,9 +136,10 @@ func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context)
 	// Send thumbnail base64 encoded string
 	SendJsonResponse(w, response{
 		Data: thumbnailResponse{
-			ID:        media.ID,
-			Thumbnail: thumbnailString,
-			CreatedAt: media.CreatedAt,
+			ID:           media.ID,
+			Thumbnail:    thumbnailString,
+			CreatedAt:    media.CreatedAt,
+			LastModified: media.LastModified,
 		},
 	})
 }
