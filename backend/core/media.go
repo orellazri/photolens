@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/disintegration/imaging"
-	"github.com/iafan/cwalk"
 	"github.com/orellazri/photolens/models"
 )
 
@@ -58,7 +57,8 @@ func ProcessMedia(context *Context) error {
 
 	// Walk the fsMedia directory and get all photo names
 	fsMedia := make(map[string]media, 0) // Map photo path to last modified time
-	err = cwalk.Walk(context.RootPath,
+	// TODO: Look into walking in parallel
+	err = filepath.Walk(context.RootPath,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -71,11 +71,12 @@ func ProcessMedia(context *Context) error {
 				if info.ModTime().UTC().After(lastProcessTime) {
 					// This directory was modified after the last process time, so we need to
 					// process it
+					// TODO: Only process directories by last modified time
 				}
 			} else {
 				// This is a file.
 				// Check content type by reading the first 512 bytes of the file
-				file, err := os.Open(filepath.Join(context.RootPath, path))
+				file, err := os.Open(path)
 				if err != nil {
 					return err
 				}
@@ -221,7 +222,7 @@ func GetThumbnail(context *Context, media *models.Media) (string, error) {
 // Returns the thumbnail image in a base64 encoded string
 func generateThumbnail(context *Context, media *models.Media, thumbnailPath string) (string, error) {
 	// Open original image
-	file, err := os.Open(filepath.Join(context.RootPath, media.Path))
+	file, err := os.Open(media.Path)
 	if err != nil {
 		return "", err
 	}
