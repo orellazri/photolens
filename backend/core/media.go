@@ -15,6 +15,7 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/orellazri/photolens/models"
+	"golang.org/x/exp/slices"
 )
 
 type media struct {
@@ -75,6 +76,12 @@ func ProcessMedia(context *Context) error {
 				}
 			} else {
 				// This is a file.
+
+				// Check if we should ignore this file
+				if slices.Contains(FilesToIgnore, filepath.Base(path)) {
+					return nil
+				}
+
 				// Check content type by reading the first 512 bytes of the file
 				file, err := os.Open(path)
 				if err != nil {

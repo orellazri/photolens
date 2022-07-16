@@ -7,3 +7,6 @@ type Context struct {
 	RootPath  string
 	CachePath string
 }
+
+// Files to ignore when processing media
+var FilesToIgnore = []string{".DS_Store"}

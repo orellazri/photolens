@@ -85,7 +85,7 @@ func getMedia(w http.ResponseWriter, r *http.Request, context *core.Context) {
 	}
 
 	// Open file
-	file, err := os.Open(fmt.Sprintf("%s/%s", context.RootPath, media.Path))
+	file, err := os.Open(media.Path)
 	if err != nil {
 		log.Printf("Could not load media %d! %v", id, err)
 		SendError(w, "Could not load media")
