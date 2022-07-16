@@ -28,6 +28,8 @@ export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
   const [thumbnails, setThumbnails] = useState<Array<Thumbnail>>([]);
   const [sortDir, setSortDir] = useState<string>("desc");
 
+  // TODO: Fetch in chunks (configurable with prop)
+
   // Fetch metadata on page load
   useEffect(() => {
     const fetchMetadata = async () => {
