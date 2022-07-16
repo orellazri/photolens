@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/orellazri/photolens/core"
 	"github.com/orellazri/photolens/models"
+	"golang.org/x/exp/slices"
 )
 
 func RegisterMediaRouter(context *core.Context, router *mux.Router) {
@@ -34,9 +35,16 @@ func getMetadata(w http.ResponseWriter, r *http.Request, context *core.Context) 
 	// Get parameters
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+
+	sortByParam := r.URL.Query().Get("sortby")
+	sortBy := "created_at"
+	if slices.Contains([]string{"created_at", "last_modified"}, sortByParam) {
+		sortBy = sortByParam
+	}
+
 	sortDirParam := r.URL.Query().Get("sortdir")
 	sortDir := "desc"
-	if sortDirParam == "asc" {
+	if slices.Contains([]string{"desc", "asc"}, sortDirParam) {
 		sortDir = sortDirParam
 	}
 
@@ -45,7 +53,7 @@ func getMetadata(w http.ResponseWriter, r *http.Request, context *core.Context) 
 	err := context.DB.
 		Limit(limit).
 		Offset(offset).
-		Order(fmt.Sprintf("created_at %s", sortDir)).
+		Order(fmt.Sprintf("%s %s", sortBy, sortDir)).
 		Select("id", "created_at").
 		Find(&results).
 		Error
