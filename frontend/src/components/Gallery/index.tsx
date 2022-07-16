@@ -10,6 +10,7 @@ import {
   Select,
   SelectChangeEvent,
   Skeleton,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { AccessTime, Edit } from "@mui/icons-material";
@@ -30,29 +31,28 @@ type Sort = {
 };
 
 export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
+  const [isFetching, setIsFetching] = useState<boolean>(true);
   const [metadata, setMetadata] = useState<Array<Metadata>>([]);
   const [thumbnails, setThumbnails] = useState<Array<Thumbnail>>([]);
   const [sort, setSort] = useState<Sort>({ sortBy: "created_at", sortDir: "desc" });
 
-  // TODO: Fetch in chunks (configurable with prop)
+  // TODO: Fetch in chunks (configurable with prop) instead of all and then single requests
 
   // Fetch metadata on page load
   useEffect(() => {
     const fetchMetadata = async () => {
       try {
         setMetadata([]);
+        setIsFetching(true);
 
         const {
           data: { data },
         } = await axios.get(`/media/meta?limit=${limit}&offset=${offset}&sortby=${sort.sortBy}&sortdir=${sort.sortDir}`);
+        let metadataResults: Array<Metadata> = [];
         for (const result of data) {
-          setMetadata((metadata) => [
-            ...metadata,
-            {
-              id: result,
-            },
-          ]);
+          metadataResults.push({ id: result });
         }
+        setMetadata(metadataResults);
       } catch (e) {
         console.error("Could not fetch metadata! " + e);
       }
@@ -65,6 +65,8 @@ export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
   useEffect(() => {
     const fetchThumbnails = async () => {
       try {
+        setThumbnails([]);
+
         for (let item of metadata) {
           const {
             data: { data },
@@ -88,6 +90,12 @@ export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
     fetchThumbnails();
   }, [metadata]);
 
+  useEffect(() => {
+    if (metadata.length > 0 && thumbnails.length == metadata.length) {
+      setIsFetching(false);
+    }
+  }, [thumbnails]);
+
   const handleChangeSortDir = (event: SelectChangeEvent) => {
     const eventData = (event.target.value as string).split("|");
     setSort({ sortBy: eventData[0], sortDir: eventData[1] });
@@ -95,11 +103,13 @@ export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
 
   return (
     <Box>
+      {/* Form */}
       <Box className="form">
-        <FormControl>
+        <FormControl disabled={isFetching}>
           <InputLabel>Sort Direction</InputLabel>
           <Select value={`${sort.sortBy}|${sort.sortDir}`} label="Sort Direction" onChange={handleChangeSortDir}>
             <MenuItem value="created_at|desc">Recently Added</MenuItem>
+            <MenuItem value="created_at|asc">Previously Added</MenuItem>
             <MenuItem value="last_modified|desc">Newest First</MenuItem>
             <MenuItem value="last_modified|asc">Oldest First</MenuItem>
           </Select>
@@ -116,17 +126,21 @@ export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
                 <Card>
                   <CardMedia component="img" height="128" image={thumbnails[i].image} alt={thumbnails[i].id.toString()} />
                   <CardContent>
-                    <Typography sx={{ fontSize: 14 }} color="text.secondary" className="label-with-icon" gutterBottom>
-                      <AccessTime sx={{ fontSize: 14 }} />
-                      &nbsp;
-                      {thumbnails[i].createdAt}
-                    </Typography>
+                    <Tooltip title="Created At">
+                      <Typography sx={{ fontSize: 14 }} color="text.secondary" className="label-with-icon" gutterBottom>
+                        <AccessTime sx={{ fontSize: 14 }} />
+                        &nbsp;
+                        {thumbnails[i].createdAt}
+                      </Typography>
+                    </Tooltip>
 
-                    <Typography sx={{ fontSize: 14 }} color="text.secondary" className="label-with-icon" gutterBottom>
-                      <Edit sx={{ fontSize: 14 }} />
-                      &nbsp;
-                      {thumbnails[i].lastModified}
-                    </Typography>
+                    <Tooltip title="Modified At">
+                      <Typography sx={{ fontSize: 14 }} color="text.secondary" className="label-with-icon" gutterBottom>
+                        <Edit sx={{ fontSize: 14 }} />
+                        &nbsp;
+                        {thumbnails[i].lastModified}
+                      </Typography>
+                    </Tooltip>
                   </CardContent>
                 </Card>
               </a>
