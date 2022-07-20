@@ -34,7 +34,7 @@ func main() {
 
 	// Create cache directory
 	err = os.Mkdir(context.CachePath, os.ModePerm)
-	if err != nil && !strings.Contains(err.Error(), "file exists") {
+	if err != nil && !strings.Contains(err.Error(), "exists") {
 		log.Fatalf("Could not create cache directory! %v", err)
 	}
 
