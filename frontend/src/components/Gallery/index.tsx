@@ -91,10 +91,10 @@ export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
   }, [metadata]);
 
   useEffect(() => {
-    if (metadata.length > 0 && thumbnails.length == metadata.length) {
+    if (metadata.length > 0 && thumbnails.length === metadata.length) {
       setIsFetching(false);
     }
-  }, [thumbnails]);
+  }, [thumbnails, metadata.length]);
 
   const handleChangeSortDir = (event: SelectChangeEvent) => {
     const eventData = (event.target.value as string).split("|");
