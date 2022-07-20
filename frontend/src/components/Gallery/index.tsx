@@ -106,7 +106,7 @@ export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
       {/* Form */}
       <Box className="form">
         <FormControl disabled={isFetching}>
-          <InputLabel>Sort Direction</InputLabel>
+          <InputLabel>Sort By</InputLabel>
           <Select value={`${sort.sortBy}|${sort.sortDir}`} label="Sort Direction" onChange={handleChangeSortDir}>
             <MenuItem value="created_at|desc">Recently Added</MenuItem>
             <MenuItem value="created_at|asc">Previously Added</MenuItem>
