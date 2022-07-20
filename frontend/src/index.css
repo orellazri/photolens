@@ -1,8 +1,15 @@
+/* Global */
 a {
   text-decoration: none;
 }
 
 .label-with-icon {
   display: flex;
+  align-items: center;
+}
+
+/* Index */
+.header {
+  margin-bottom: 2rem;
   align-items: center;
 }
