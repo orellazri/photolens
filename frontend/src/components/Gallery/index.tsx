@@ -1,24 +1,11 @@
 import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardMedia,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  Skeleton,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import { AccessTime, Edit } from "@mui/icons-material";
+import { FormControl, Grid, InputLabel, MenuItem, Select, SelectChangeEvent, Skeleton } from "@mui/material";
+import { Box } from "@mui/system";
 import axios from "axios";
 import moment from "moment";
 
 import "./style.css";
-import { Box } from "@mui/system";
+import PhotoCard from "../PhotoCard";
 
 type GalleryProps = {
   limit?: Number;
@@ -122,28 +109,7 @@ export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
           thumbnails[i] ? (
             // Thumbnails
             <Grid item key={i}>
-              <a href={`${global.API_URL}/media/${thumbnails[i].id}`}>
-                <Card>
-                  <CardMedia component="img" height="128" image={thumbnails[i].image} alt={thumbnails[i].id.toString()} />
-                  <CardContent>
-                    <Tooltip title="Created At">
-                      <Typography sx={{ fontSize: 14 }} color="text.secondary" className="label-with-icon" gutterBottom>
-                        <AccessTime sx={{ fontSize: 14 }} />
-                        &nbsp;
-                        {thumbnails[i].createdAt}
-                      </Typography>
-                    </Tooltip>
-
-                    <Tooltip title="Modified At">
-                      <Typography sx={{ fontSize: 14 }} color="text.secondary" className="label-with-icon" gutterBottom>
-                        <Edit sx={{ fontSize: 14 }} />
-                        &nbsp;
-                        {thumbnails[i].lastModified}
-                      </Typography>
-                    </Tooltip>
-                  </CardContent>
-                </Card>
-              </a>
+              <PhotoCard thumbnail={thumbnails[i]} />
             </Grid>
           ) : (
             // Placeholders
