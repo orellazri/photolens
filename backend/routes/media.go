@@ -20,6 +20,7 @@ func RegisterMediaRouter(context *core.Context, router *mux.Router) {
 	router.HandleFunc("/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) { getMedia(w, r, context) }).Methods("GET")
 	router.HandleFunc("/thumbnail/all", func(w http.ResponseWriter, r *http.Request) { getAllThumbnails(w, r, context) }).Methods("GET")
 	router.HandleFunc("/thumbnail/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) { getThumbnail(w, r, context) }).Methods("GET")
+	router.HandleFunc("/process", func(w http.ResponseWriter, r *http.Request) { getProcessMedia(w, r, context) }).Methods("GET")
 }
 
 func getMetadata(w http.ResponseWriter, r *http.Request, context *core.Context) {
@@ -188,5 +189,19 @@ func getAllThumbnails(w http.ResponseWriter, r *http.Request, context *core.Cont
 
 	SendJsonResponse(w, response{
 		Data: thumbnails,
+	})
+}
+
+func getProcessMedia(w http.ResponseWriter, r *http.Request, context *core.Context) {
+	err := core.ProcessMedia(context)
+	if err != nil {
+		log.Printf("Could not process media! %v", err)
+		SendError(w, "Could not get process media")
+		return
+	}
+
+	SendJsonResponse(w, MessageResponse{
+		Message: "OK",
+		Error:   false,
 	})
 }
