@@ -8,6 +8,8 @@ import HomePage from "../../pages/HomePage";
 import SettingsPage from "../../pages/SettingsPage";
 
 export default function PageWrapper() {
+  // TODO: Add error and success toasts here
+
   return (
     <Container maxWidth="xl">
       {/* Header */}
