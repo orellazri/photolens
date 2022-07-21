@@ -5,18 +5,23 @@ import axios from "axios";
 import moment from "moment";
 
 import "./style.css";
-import PhotoCard from "../PhotoCard";
+import ThumbnailCard from "../ThumbnailCard";
 
+type SortByChoices = "created_at" | "last_modified";
+type SortDirChoices = "desc" | "asc";
 type Sort = {
-  sortBy: string;
-  sortDir: string;
+  sortBy: SortByChoices;
+  sortDir: SortDirChoices;
 };
+
+type ViewStyleChoices = "cards" | "tiles";
 
 export default function Gallery() {
   const [isFetching, setIsFetching] = useState<boolean>(false);
+  const [currentChunk, setCurrentChunk] = useState<number>(0);
   const [thumbnails, setThumbnails] = useState<Array<Thumbnail>>([]);
   const [sort, setSort] = useState<Sort>({ sortBy: "created_at", sortDir: "desc" });
-  const [currentChunk, setCurrentChunk] = useState<number>(0);
+  const [viewStyle, setViewStyle] = useState<ViewStyleChoices>("cards");
 
   const thumbnailsPerChunk = 50;
 
@@ -68,12 +73,18 @@ export default function Gallery() {
     loadChunk();
   }, [loadChunk]);
 
-  // Handle the evernt where the user changes the sort direction
+  // Handle the event where the user changes the sort direction
   const handleChangeSortDir = (event: SelectChangeEvent) => {
     const eventData = (event.target.value as string).split("|");
-    setSort({ sortBy: eventData[0], sortDir: eventData[1] });
+    setSort({ sortBy: eventData[0] as SortByChoices, sortDir: eventData[1] as SortDirChoices });
     setThumbnails([]);
     setCurrentChunk(0);
+  };
+
+  // Handle the event where the user changes the view style
+  const handleChangeViewStyle = (event: SelectChangeEvent) => {
+    const eventData = event.target.value as ViewStyleChoices;
+    setViewStyle(eventData);
   };
 
   useEffect(() => {
@@ -95,11 +106,31 @@ export default function Gallery() {
     }
   }, [currentChunk, loadChunk]);
 
+  // Render a thumbnail
+  const renderThumbnail = (thumbnail: Thumbnail, i: number) => {
+    switch (viewStyle) {
+      case "cards":
+        return (
+          <Grid item key={i} xs={4} md={3} lg={2}>
+            <ThumbnailCard thumbnail={thumbnail} />
+          </Grid>
+        );
+      case "tiles":
+        return (
+          <Grid item key={i}>
+            <a href={`${global.API_URL}/media/${thumbnail.id}`}>
+              <img src={`${global.API_URL}/media/thumbnail/${thumbnail.id}`} alt={thumbnail.id.toString()} />
+            </a>
+          </Grid>
+        );
+    }
+  };
+
   return (
     <Box>
       {/* Form */}
-      <Box className="form">
-        <FormControl disabled={isFetching}>
+      <Box className="gallery-form">
+        <FormControl disabled={isFetching} className="gallery-form-input">
           <InputLabel>Sort By</InputLabel>
           <Select value={`${sort.sortBy}|${sort.sortDir}`} label="Sort Direction" onChange={handleChangeSortDir}>
             <MenuItem value="created_at|desc">Recently Added</MenuItem>
@@ -108,15 +139,19 @@ export default function Gallery() {
             <MenuItem value="last_modified|asc">Oldest First</MenuItem>
           </Select>
         </FormControl>
+
+        <FormControl className="gallery-form-input">
+          <InputLabel>View Style</InputLabel>
+          <Select value={viewStyle} label="View Style" onChange={handleChangeViewStyle}>
+            <MenuItem value="cards">Cards</MenuItem>
+            <MenuItem value="tiles">Tiles</MenuItem>
+          </Select>
+        </FormControl>
       </Box>
 
       {/* Grid */}
       <Grid container spacing={1} alignContent="center">
-        {thumbnails.map((thumbnail, i) => (
-          <Grid xs={4} md={3} lg={2} item key={i}>
-            <PhotoCard thumbnail={thumbnail} />
-          </Grid>
-        ))}
+        {thumbnails.map((thumbnail, i) => renderThumbnail(thumbnail, i))}
       </Grid>
     </Box>
   );

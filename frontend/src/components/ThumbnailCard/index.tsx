@@ -3,11 +3,11 @@ import { AccessTime, Edit } from "@mui/icons-material";
 
 import "./style.css";
 
-type PhotoCardProps = {
+type ThumbnailCardProps = {
   thumbnail: Thumbnail;
 };
 
-export default function PhotoCard({ thumbnail }: PhotoCardProps) {
+export default function ThumbnailCard({ thumbnail }: ThumbnailCardProps) {
   return (
     <Card>
       <CardActionArea>
