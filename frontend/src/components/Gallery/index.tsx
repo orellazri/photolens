@@ -17,7 +17,6 @@ export default function Gallery() {
   const [thumbnails, setThumbnails] = useState<Array<Thumbnail>>([]);
   const [sort, setSort] = useState<Sort>({ sortBy: "created_at", sortDir: "desc" });
   const [currentChunk, setCurrentChunk] = useState<number>(0);
-  const [err, setErr] = useState<any>(null);
 
   const thumbnailsPerChunk = 50;
 
@@ -53,12 +52,9 @@ export default function Gallery() {
           setCurrentChunk((currentChunk) => currentChunk + 1);
           setIsFetching(false);
         })
-        .catch((e) => {
-          setErr("---> 1" + e);
-        });
+        .catch((e) => {});
     } catch (e) {
       console.error("Could not load chunk! " + e);
-      setErr("---> 2" + e);
     }
   }, [currentChunk, sort]);
 
@@ -94,7 +90,6 @@ export default function Gallery() {
 
   return (
     <Box>
-      {err}
       {/* Form */}
       <Box className="form">
         <FormControl disabled={isFetching}>
