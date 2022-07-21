@@ -36,8 +36,8 @@ export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
         for (const result of data) {
           thumbnailsResults.push({
             id: result.id,
-            createdAt: moment(result.created_at).local().format("DD/MM/YYYY HH:mm:ss"),
-            lastModified: moment(result.last_modified).local().format("DD/MM/YYYY HH:mm:ss"),
+            createdAt: moment(result.created_at).local().format("DD/MM/YYYY"),
+            lastModified: moment(result.last_modified).local().format("DD/MM/YYYY"),
           });
         }
         setThumbnails(thumbnailsResults);
@@ -70,9 +70,9 @@ export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
       </Box>
 
       {/* Grid */}
-      <Grid container spacing={1} className="grid">
+      <Grid container spacing={1} alignContent="center">
         {thumbnails.map((thumbnail, i) => (
-          <Grid item key={i}>
+          <Grid xs={4} md={3} lg={2} item key={i}>
             <PhotoCard thumbnail={thumbnail} />
           </Grid>
         ))}
