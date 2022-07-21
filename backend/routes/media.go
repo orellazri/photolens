@@ -18,14 +18,20 @@ import (
 func RegisterMediaRouter(context *core.Context, router *mux.Router) {
 	router.HandleFunc("/meta", func(w http.ResponseWriter, r *http.Request) { getMetadata(w, r, context) }).Methods("GET")
 	router.HandleFunc("/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) { getMedia(w, r, context) }).Methods("GET")
-	router.HandleFunc("/thumbnail/all", func(w http.ResponseWriter, r *http.Request) { getAllThumbnails(w, r, context) }).Methods("GET")
+	// router.HandleFunc("/thumbnail/all", func(w http.ResponseWriter, r *http.Request) { getAllThumbnails(w, r, context) }).Methods("GET")
 	router.HandleFunc("/thumbnail/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) { getThumbnail(w, r, context) }).Methods("GET")
 	router.HandleFunc("/process", func(w http.ResponseWriter, r *http.Request) { getProcessMedia(w, r, context) }).Methods("GET")
 }
 
 func getMetadata(w http.ResponseWriter, r *http.Request, context *core.Context) {
+	type thumbnailResponse struct {
+		ID           uint      `json:"id"`
+		CreatedAt    time.Time `json:"created_at"`
+		LastModified time.Time `json:"last_modified"`
+	}
+
 	type response struct {
-		Data []uint `json:"data"`
+		Data []thumbnailResponse `json:"data"`
 	}
 
 	// Get parameters
@@ -50,7 +56,7 @@ func getMetadata(w http.ResponseWriter, r *http.Request, context *core.Context) 
 		Limit(limit).
 		Offset(offset).
 		Order(fmt.Sprintf("%s %s", sortBy, sortDir)).
-		Select("id").
+		Select("id", "created_at", "last_modified").
 		Find(&results).
 		Error
 	if err != nil {
@@ -59,9 +65,13 @@ func getMetadata(w http.ResponseWriter, r *http.Request, context *core.Context) 
 		return
 	}
 
-	var metadatas []uint
+	var metadatas []thumbnailResponse
 	for _, result := range results {
-		metadatas = append(metadatas, result.ID)
+		metadatas = append(metadatas, thumbnailResponse{
+			ID:           result.ID,
+			CreatedAt:    result.CreatedAt,
+			LastModified: result.LastModified,
+		})
 	}
 
 	SendJsonResponse(w, response{
@@ -100,17 +110,6 @@ func getMedia(w http.ResponseWriter, r *http.Request, context *core.Context) {
 }
 
 func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context) {
-	type thumbnailResponse struct {
-		ID           uint      `json:"id"`
-		Thumbnail    string    `json:"thumbnail"`
-		CreatedAt    time.Time `json:"created_at"`
-		LastModified time.Time `json:"last_modified"`
-	}
-
-	type response struct {
-		Data thumbnailResponse `json:"data"`
-	}
-
 	// Convert id to number
 	idStr := mux.Vars(r)["id"]
 	id, err := strconv.Atoi(idStr)
@@ -126,23 +125,26 @@ func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context)
 		return
 	}
 
-	// Generate/get thumbnail
-	thumbnailString, err := core.GetThumbnail(context, media)
+	// Generate thumbnail (or get existing)
+	thumbnailPath, err := core.GetThumbnail(context, media)
 	if err != nil {
 		log.Printf("Could not generate thumbnail! %v", err)
 		SendError(w, "Could not generate thumbnail")
 		return
 	}
 
-	// Send thumbnail base64 encoded string
-	SendJsonResponse(w, response{
-		Data: thumbnailResponse{
-			ID:           media.ID,
-			Thumbnail:    thumbnailString,
-			CreatedAt:    media.CreatedAt,
-			LastModified: media.LastModified,
-		},
-	})
+	// Open file
+	file, err := os.Open(thumbnailPath)
+	if err != nil {
+		log.Printf("Could not load thumbnail! %v", err)
+		SendError(w, "Could not load thumbnail")
+		return
+	}
+	defer file.Close()
+
+	// Send file
+	w.Header().Set("Content-Type", media.ContentType)
+	io.Copy(w, file)
 }
 
 func getAllThumbnails(w http.ResponseWriter, r *http.Request, context *core.Context) {

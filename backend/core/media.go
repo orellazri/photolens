@@ -1,11 +1,9 @@
 package core
 
 import (
-	"encoding/base64"
 	"fmt"
 	"image"
 	"image/png"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -206,18 +204,13 @@ func getThumbnailPath(context *Context, media *models.Media) string {
 }
 
 // Fetch an existing thumbnail or generate a new one if it doesn't exist already
-// Returns the thumnail image in a base64 encoded string
+// Returns the thumnail image path
 func GetThumbnail(context *Context, media *models.Media) (string, error) {
 	thumbnailPath := getThumbnailPath(context, media)
 
 	// Check if thumbnail already exists before generating new one
 	if _, err := os.Stat(thumbnailPath); err == nil {
-		content, err := ioutil.ReadFile(thumbnailPath)
-		if err != nil {
-			return "", err
-		}
-		encoded := base64.StdEncoding.EncodeToString(content)
-		return encoded, nil
+		return thumbnailPath, nil
 	}
 
 	// If we got here, the thumbnail doesn't exist already
@@ -226,7 +219,7 @@ func GetThumbnail(context *Context, media *models.Media) (string, error) {
 }
 
 // Generate a thumbnail for a given image
-// Returns the thumbnail image in a base64 encoded string
+// Returns the thumbnail image path
 func generateThumbnail(context *Context, media *models.Media, thumbnailPath string) (string, error) {
 	// Open original image
 	file, err := os.Open(media.Path)
@@ -261,10 +254,5 @@ func generateThumbnail(context *Context, media *models.Media, thumbnailPath stri
 	}
 	thumbnailFile.Close()
 
-	content, err := ioutil.ReadFile(thumbnailPath)
-	if err != nil {
-		return "", err
-	}
-	encoded := base64.StdEncoding.EncodeToString(content)
-	return encoded, nil
+	return thumbnailPath, nil
 }

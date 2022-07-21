@@ -18,70 +18,36 @@ type Sort = {
 };
 
 export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
-  const [isFetching, setIsFetching] = useState<boolean>(true);
-  const [metadata, setMetadata] = useState<Array<Metadata>>([]);
   const [thumbnails, setThumbnails] = useState<Array<Thumbnail>>([]);
   const [sort, setSort] = useState<Sort>({ sortBy: "created_at", sortDir: "desc" });
 
   // TODO: Fetch in chunks (configurable with prop) instead of all and then single requests
+  // TODO: Add toasts to try catch blocks for errors
 
-  // Fetch metadata on page load
-  useEffect(() => {
-    const fetchMetadata = async () => {
-      try {
-        setMetadata([]);
-        setIsFetching(true);
-
-        const {
-          data: { data },
-        } = await axios.get(`/media/meta?limit=${limit}&offset=${offset}&sortby=${sort.sortBy}&sortdir=${sort.sortDir}`);
-        let metadataResults: Array<Metadata> = [];
-        for (const result of data) {
-          metadataResults.push({ id: result });
-        }
-        setMetadata(metadataResults);
-      } catch (e) {
-        console.error("Could not fetch metadata! " + e);
-      }
-    };
-
-    fetchMetadata();
-  }, [limit, offset, sort]);
-
-  // Fetch thumbnails after fetching
   useEffect(() => {
     const fetchThumbnails = async () => {
       try {
         setThumbnails([]);
 
-        for (let item of metadata) {
-          const {
-            data: { data },
-          } = await axios.get("/media/thumbnail/" + item.id);
-
-          setThumbnails((thumbnails) => [
-            ...thumbnails,
-            {
-              id: data.id,
-              image: "data:image/png;base64," + data.thumbnail,
-              createdAt: moment(data.created_at).local().format("DD/MM/YYYY HH:mm:ss"),
-              lastModified: moment(data.last_modified).local().format("DD/MM/YYYY HH:mm:ss"),
-            },
-          ]);
+        const {
+          data: { data },
+        } = await axios.get(`/media/meta?limit=${limit}&offset=${offset}&sortby=${sort.sortBy}&sortdir=${sort.sortDir}`);
+        let thumbnailsResults: Array<Thumbnail> = [];
+        for (const result of data) {
+          thumbnailsResults.push({
+            id: result.id,
+            createdAt: moment(result.created_at).local().format("DD/MM/YYYY HH:mm:ss"),
+            lastModified: moment(result.last_modified).local().format("DD/MM/YYYY HH:mm:ss"),
+          });
         }
+        setThumbnails(thumbnailsResults);
       } catch (e) {
-        console.error("Could not fetch thumbnails! " + e);
+        console.error("Could not fetch metadata! " + e);
       }
     };
 
     fetchThumbnails();
-  }, [metadata]);
-
-  useEffect(() => {
-    if (metadata.length > 0 && thumbnails.length === metadata.length) {
-      setIsFetching(false);
-    }
-  }, [thumbnails, metadata.length]);
+  }, [limit, offset, sort]);
 
   const handleChangeSortDir = (event: SelectChangeEvent) => {
     const eventData = (event.target.value as string).split("|");
@@ -92,7 +58,7 @@ export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
     <Box>
       {/* Form */}
       <Box className="form">
-        <FormControl disabled={isFetching}>
+        <FormControl>
           <InputLabel>Sort By</InputLabel>
           <Select value={`${sort.sortBy}|${sort.sortDir}`} label="Sort Direction" onChange={handleChangeSortDir}>
             <MenuItem value="created_at|desc">Recently Added</MenuItem>
@@ -105,19 +71,11 @@ export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
 
       {/* Grid */}
       <Grid container spacing={1} className="grid">
-        {metadata.map((_, i) =>
-          thumbnails[i] ? (
-            // Thumbnails
-            <Grid item key={i}>
-              <PhotoCard thumbnail={thumbnails[i]} />
-            </Grid>
-          ) : (
-            // Placeholders
-            <Grid item key={i}>
-              <Skeleton variant="rectangular" width={190} height={195} />
-            </Grid>
-          )
-        )}
+        {thumbnails.map((thumbnail, i) => (
+          <Grid item key={i}>
+            <PhotoCard thumbnail={thumbnail} />
+          </Grid>
+        ))}
       </Grid>
     </Box>
   );

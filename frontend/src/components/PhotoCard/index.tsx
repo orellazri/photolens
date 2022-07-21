@@ -12,7 +12,12 @@ export default function PhotoCard({ thumbnail }: PhotoCardProps) {
     <Card>
       <CardActionArea>
         <a href={`${global.API_URL}/media/${thumbnail.id}`}>
-          <CardMedia component="img" height="128" image={thumbnail.image} alt={thumbnail.id.toString()} />
+          <CardMedia
+            component="img"
+            height="150"
+            image={`${global.API_URL}/media/thumbnail/${thumbnail.id}`}
+            alt={thumbnail.id.toString()}
+          />
           <CardContent>
             <Tooltip title="Created At">
               <Typography sx={{ fontSize: 14 }} color="text.secondary" className="label-with-icon" gutterBottom>
