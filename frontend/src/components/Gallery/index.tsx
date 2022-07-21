@@ -22,6 +22,7 @@ export default function Gallery() {
 
   // TODO: Add toasts to try catch blocks for errors
 
+  // Load the next chunk
   const loadChunk = useCallback(() => {
     try {
       setIsFetching(true);
@@ -58,12 +59,16 @@ export default function Gallery() {
     }
   }, [currentChunk, sort]);
 
+  // Handle the event where the user scroll to the bottom of the page
   const handleScrollToBottom = useCallback(() => {
     const bottom = Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight;
     if (!bottom) return;
+
+    // Load the next chunk
     loadChunk();
   }, [loadChunk]);
 
+  // Handle the evernt where the user changes the sort direction
   const handleChangeSortDir = (event: SelectChangeEvent) => {
     const eventData = (event.target.value as string).split("|");
     setSort({ sortBy: eventData[0], sortDir: eventData[1] });
@@ -82,6 +87,8 @@ export default function Gallery() {
     };
   }, [currentChunk, handleScrollToBottom]);
 
+  // Check whether we should load the next chunk (until the scroll bar appears
+  // or we are out of photos to load)
   useEffect(() => {
     if (document.body.clientHeight <= window.innerHeight) {
       loadChunk();
