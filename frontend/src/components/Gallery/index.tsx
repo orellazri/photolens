@@ -18,6 +18,7 @@ type Sort = {
 };
 
 export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
+  const [isFetching, setIsFetching] = useState<boolean>(false);
   const [thumbnails, setThumbnails] = useState<Array<Thumbnail>>([]);
   const [sort, setSort] = useState<Sort>({ sortBy: "created_at", sortDir: "desc" });
 
@@ -25,22 +26,28 @@ export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
   // TODO: Add toasts to try catch blocks for errors
 
   useEffect(() => {
-    const fetchThumbnails = async () => {
+    const fetchThumbnails = () => {
       try {
         setThumbnails([]);
+        setIsFetching(true);
 
-        const {
-          data: { data },
-        } = await axios.get(`/media/meta?limit=${limit}&offset=${offset}&sortby=${sort.sortBy}&sortdir=${sort.sortDir}`);
-        let thumbnailsResults: Array<Thumbnail> = [];
-        for (const result of data) {
-          thumbnailsResults.push({
-            id: result.id,
-            createdAt: moment(result.created_at).local().format("DD/MM/YYYY"),
-            lastModified: moment(result.last_modified).local().format("DD/MM/YYYY"),
-          });
-        }
-        setThumbnails(thumbnailsResults);
+        axios.get(`/media/meta?limit=${limit}&offset=${offset}&sortby=${sort.sortBy}&sortdir=${sort.sortDir}`).then((res) => {
+          const {
+            data: { data },
+          } = res;
+
+          let thumbnailsResults: Array<Thumbnail> = [];
+          for (const result of data) {
+            thumbnailsResults.push({
+              id: result.id,
+              createdAt: moment(result.created_at).local().format("DD/MM/YYYY"),
+              lastModified: moment(result.last_modified).local().format("DD/MM/YYYY"),
+            });
+          }
+          setThumbnails(thumbnailsResults);
+
+          setIsFetching(false);
+        });
       } catch (e) {
         console.error("Could not fetch metadata! " + e);
       }
@@ -58,7 +65,7 @@ export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
     <Box>
       {/* Form */}
       <Box className="form">
-        <FormControl>
+        <FormControl disabled={isFetching}>
           <InputLabel>Sort By</InputLabel>
           <Select value={`${sort.sortBy}|${sort.sortDir}`} label="Sort Direction" onChange={handleChangeSortDir}>
             <MenuItem value="created_at|desc">Recently Added</MenuItem>
