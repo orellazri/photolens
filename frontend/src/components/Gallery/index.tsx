@@ -26,28 +26,24 @@ export default function Gallery({ limit = 0, offset = 0 }: GalleryProps) {
   // TODO: Add toasts to try catch blocks for errors
 
   useEffect(() => {
-    const fetchThumbnails = () => {
+    const fetchThumbnails = async () => {
       try {
         setThumbnails([]);
         setIsFetching(true);
 
-        axios.get(`/media/meta?limit=${limit}&offset=${offset}&sortby=${sort.sortBy}&sortdir=${sort.sortDir}`).then((res) => {
-          const {
-            data: { data },
-          } = res;
-
-          let thumbnailsResults: Array<Thumbnail> = [];
-          for (const result of data) {
-            thumbnailsResults.push({
-              id: result.id,
-              createdAt: moment(result.created_at).local().format("DD/MM/YYYY"),
-              lastModified: moment(result.last_modified).local().format("DD/MM/YYYY"),
-            });
-          }
-          setThumbnails(thumbnailsResults);
-
-          setIsFetching(false);
-        });
+        const {
+          data: { data },
+        } = await axios.get(`/media/meta?limit=${limit}&offset=${offset}&sortby=${sort.sortBy}&sortdir=${sort.sortDir}`);
+        let thumbnailsResults: Array<Thumbnail> = [];
+        for (const result of data) {
+          thumbnailsResults.push({
+            id: result.id,
+            createdAt: moment(result.created_at).local().format("DD/MM/YYYY"),
+            lastModified: moment(result.last_modified).local().format("DD/MM/YYYY"),
+          });
+        }
+        setThumbnails(thumbnailsResults);
+        setIsFetching(false);
       } catch (e) {
         console.error("Could not fetch metadata! " + e);
       }
