@@ -9,10 +9,15 @@ export default function SettingsPage() {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
 
-  const handleProcessMedia = async () => {
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
+  const handleProcessMedia = () => {
     try {
-      await axios.get("/media/process");
-      setSuccess("Finished processing media");
+      setIsProcessing(true);
+      axios.get("/media/process").then(() => {
+        setSuccess("Finished processing media");
+        setIsProcessing(false);
+      });
     } catch (e) {
       console.error("Could not process media! " + e);
       setError("Could not process media");
@@ -21,7 +26,7 @@ export default function SettingsPage() {
 
   return (
     <Box>
-      <Button variant="contained" onClick={handleProcessMedia}>
+      <Button variant="contained" onClick={handleProcessMedia} disabled={isProcessing}>
         Process media
       </Button>
 
