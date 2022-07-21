@@ -18,7 +18,7 @@ export default function PhotoCard({ thumbnail }: PhotoCardProps) {
             image={`${global.API_URL}/media/thumbnail/${thumbnail.id}`}
             alt={thumbnail.id.toString()}
           />
-          <CardContent>
+          <CardContent className="photo-card-content">
             <Tooltip title="Created At">
               <Typography sx={{ fontSize: 14 }} color="text.secondary" className="label-with-icon" gutterBottom>
                 <AccessTime sx={{ fontSize: 14 }} />
