@@ -14,6 +14,7 @@ func setup(t *testing.T) (*Context, string) {
 	tempDir := t.TempDir()
 	os.Mkdir(filepath.Join(tempDir, "media"), os.ModePerm)
 	os.Mkdir(filepath.Join(tempDir, "cache"), os.ModePerm)
+	os.Mkdir(filepath.Join(tempDir, "cache", "thumbnails"), os.ModePerm)
 
 	db, err := database.SetupDatabase(filepath.Join(tempDir, "photolens.db"))
 	if err != nil {

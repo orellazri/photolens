@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -36,6 +37,12 @@ func main() {
 	err = os.Mkdir(context.CachePath, os.ModePerm)
 	if err != nil && !strings.Contains(err.Error(), "exists") {
 		log.Fatalf("Could not create cache directory! %v", err)
+	}
+
+	// Create thumbnails cache directory
+	err = os.Mkdir(filepath.Join(context.CachePath, "thumbnails"), os.ModePerm)
+	if err != nil && !strings.Contains(err.Error(), "exists") {
+		log.Fatalf("Could not create thumbnails cache directory! %v", err)
 	}
 
 	// Process media

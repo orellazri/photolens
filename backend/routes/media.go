@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/orellazri/photolens/core"
 	"github.com/orellazri/photolens/models"
@@ -17,15 +18,15 @@ import (
 
 func RegisterMediaRouter(context *core.Context, router *mux.Router) {
 	router.HandleFunc("/meta", func(w http.ResponseWriter, r *http.Request) { getMetadata(w, r, context) }).Methods("GET")
-	router.HandleFunc("/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) { getMedia(w, r, context) }).Methods("GET")
-	// router.HandleFunc("/thumbnail/all", func(w http.ResponseWriter, r *http.Request) { getAllThumbnails(w, r, context) }).Methods("GET")
-	router.HandleFunc("/thumbnail/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) { getThumbnail(w, r, context) }).Methods("GET")
 	router.HandleFunc("/process", func(w http.ResponseWriter, r *http.Request) { getProcessMedia(w, r, context) }).Methods("GET")
+	router.HandleFunc("/{id}", func(w http.ResponseWriter, r *http.Request) { getMedia(w, r, context) }).Methods("GET")
+	// router.HandleFunc("/thumbnail/all", func(w http.ResponseWriter, r *http.Request) { getAllThumbnails(w, r, context) }).Methods("GET")
+	router.HandleFunc("/thumbnail/{id}", func(w http.ResponseWriter, r *http.Request) { getThumbnail(w, r, context) }).Methods("GET")
 }
 
 func getMetadata(w http.ResponseWriter, r *http.Request, context *core.Context) {
 	type thumbnailResponse struct {
-		ID           uint      `json:"id"`
+		ID           uuid.UUID `json:"id"`
 		CreatedAt    time.Time `json:"created_at"`
 		LastModified time.Time `json:"last_modified"`
 	}
@@ -80,17 +81,19 @@ func getMetadata(w http.ResponseWriter, r *http.Request, context *core.Context) 
 }
 
 func getMedia(w http.ResponseWriter, r *http.Request, context *core.Context) {
-	// Convert id to number
-	idStr := mux.Vars(r)["id"]
-	id, err := strconv.Atoi(idStr)
+	// Convert id string to uuid
+	id := mux.Vars(r)["id"]
+	uuid, err := uuid.Parse(id)
 	if err != nil {
-		SendError(w, fmt.Sprintf("Invalid id %v", idStr))
+		log.Printf("Could not find parse UUID for id %v! %v", id, err)
+		SendError(w, fmt.Sprintf("Could not find media for id %v", id))
 		return
 	}
 
 	// Get media from ID
-	media, err := core.GetMediaFromID(id, context)
+	media, err := core.GetMediaFromID(uuid, context)
 	if err != nil {
+		log.Printf("Could not find media for id %v! %v", id, err)
 		SendError(w, fmt.Sprintf("Could not find media for id %v", id))
 		return
 	}
@@ -98,7 +101,7 @@ func getMedia(w http.ResponseWriter, r *http.Request, context *core.Context) {
 	// Open file
 	file, err := os.Open(media.Path)
 	if err != nil {
-		log.Printf("Could not load media %d! %v", id, err)
+		log.Printf("Could not load media %v! %v", id, err)
 		SendError(w, "Could not load media")
 		return
 	}
@@ -110,17 +113,19 @@ func getMedia(w http.ResponseWriter, r *http.Request, context *core.Context) {
 }
 
 func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context) {
-	// Convert id to number
-	idStr := mux.Vars(r)["id"]
-	id, err := strconv.Atoi(idStr)
+	// Convert id string to uuid
+	id := mux.Vars(r)["id"]
+	uuid, err := uuid.Parse(id)
 	if err != nil {
-		SendError(w, fmt.Sprintf("Invalid id %v", id))
+		log.Printf("Could not find parse UUID for id %v! %v", id, err)
+		SendError(w, fmt.Sprintf("Could not find media for id %v", id))
 		return
 	}
 
 	// Get media from ID
-	media, err := core.GetMediaFromID(id, context)
+	media, err := core.GetMediaFromID(uuid, context)
 	if err != nil {
+		log.Printf("Could not find media for id %v! %v", id, err)
 		SendError(w, fmt.Sprintf("Could not find media for id %v", id))
 		return
 	}
@@ -149,7 +154,7 @@ func getThumbnail(w http.ResponseWriter, r *http.Request, context *core.Context)
 
 func getAllThumbnails(w http.ResponseWriter, r *http.Request, context *core.Context) {
 	type thumbnailResponse struct {
-		ID        uint      `json:"id"`
+		ID        uuid.UUID `json:"id"`
 		Thumbnail string    `json:"thumbnail"`
 		CreatedAt time.Time `json:"created_at"`
 	}
@@ -170,7 +175,7 @@ func getAllThumbnails(w http.ResponseWriter, r *http.Request, context *core.Cont
 	var thumbnails []thumbnailResponse
 	// TODO: Look into doing this in parallel
 	for _, result := range results {
-		media, err := core.GetMediaFromID(int(result.ID), context)
+		media, err := core.GetMediaFromID(result.ID, context)
 		if err != nil {
 			log.Printf("Could not get media from ID! %v", err)
 			SendError(w, "Could not get thumbnails")

@@ -21,7 +21,5 @@ func MigrateDatabase(db *gorm.DB) error {
 		&models.Meta{},
 	}
 
-	db.AutoMigrate(models...)
-
-	return nil
+	return db.AutoMigrate(models...)
 }

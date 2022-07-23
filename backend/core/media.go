@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/disintegration/imaging"
+	"github.com/google/uuid"
 	"github.com/orellazri/photolens/models"
 	"golang.org/x/exp/slices"
 )
@@ -134,14 +135,11 @@ func ProcessMedia(context *Context) error {
 			continue
 		}
 
-		// Generate thumbnail in the background
-		// TODO: Error handling (wait for all thumbnails to finish at the end of processing
-		// 		 and check for errors)
-		go GetThumbnail(context, &models.Media{Path: path})
-
 		// Try to create photo in database, or update last modified time if
 		// it already exists
+		newUUID := uuid.New()
 		photo := models.Media{
+			ID:           newUUID,
 			Path:         path,
 			IsPhoto:      media.isPhoto,
 			ContentType:  media.contentType,
@@ -149,7 +147,12 @@ func ProcessMedia(context *Context) error {
 		}
 		if context.DB.Model(&photo).Where("path = ?", path).Updates(&photo).RowsAffected == 0 {
 			context.DB.Create(&photo)
+			go GetThumbnail(context, &models.Media{ID: newUUID, Path: path})
 		}
+
+		// Generate thumbnail in the background
+		// TODO: Error handling (wait for all thumbnails to finish at the end of processing
+		// 		 and check for errors)
 
 		numIndexed += 1
 	}
@@ -163,7 +166,7 @@ func ProcessMedia(context *Context) error {
 				return err
 			}
 
-			err = os.Remove(getThumbnailPath(context, &result))
+			err = os.Remove(getThumbnailPath(context, result.ID))
 			if err != nil && !strings.Contains(err.Error(), "no such file") {
 				return err
 			}
@@ -187,7 +190,7 @@ func ProcessMedia(context *Context) error {
 	return nil
 }
 
-func GetMediaFromID(id int, context *Context) (*models.Media, error) {
+func GetMediaFromID(id uuid.UUID, context *Context) (*models.Media, error) {
 	// Query media from id in database
 	var media models.Media
 	err := context.DB.First(&media, id).Error
@@ -199,14 +202,14 @@ func GetMediaFromID(id int, context *Context) (*models.Media, error) {
 }
 
 // Returns the path of the thumbnail file for the given media file
-func getThumbnailPath(context *Context, media *models.Media) string {
-	return filepath.Join(context.CachePath, "thumbnails", fmt.Sprintf("%s.png", media.Path))
+func getThumbnailPath(context *Context, uuid uuid.UUID) string {
+	return filepath.Join(context.CachePath, "thumbnails", fmt.Sprintf("%s.png", uuid.String()))
 }
 
 // Fetch an existing thumbnail or generate a new one if it doesn't exist already
 // Returns the thumnail image path
 func GetThumbnail(context *Context, media *models.Media) (string, error) {
-	thumbnailPath := getThumbnailPath(context, media)
+	thumbnailPath := getThumbnailPath(context, media.ID)
 
 	// Check if thumbnail already exists before generating new one
 	if _, err := os.Stat(thumbnailPath); err == nil {
@@ -230,12 +233,6 @@ func generateThumbnail(context *Context, media *models.Media, thumbnailPath stri
 
 	// Decode original image
 	image, _, err := image.Decode(file)
-	if err != nil {
-		return "", err
-	}
-
-	// Create directories for thumbnail according to original media file's path
-	err = os.MkdirAll(filepath.Join(context.CachePath, "thumbnails", filepath.Dir(media.Path)), os.ModePerm)
 	if err != nil {
 		return "", err
 	}

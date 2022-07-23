@@ -3,11 +3,16 @@ package models
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Media struct {
-	gorm.Model
+	ID        uuid.UUID `gorm:"primaryKey;type:uuid"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+
 	Path         string `gorm:"not null"`
 	ContentType  string `gorm:"not null"`
 	IsPhoto      bool
