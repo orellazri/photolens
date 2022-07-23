@@ -13,7 +13,7 @@ import PageWrapper from "./components/PageWrapper";
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 
 // Set global variables
-global.API_URL = "http://localhost:5000";
+global.API_URL = "http://localhost:5000/api";
 
 // Set axios defaults
 axios.defaults.baseURL = global.API_URL;

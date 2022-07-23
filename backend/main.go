@@ -54,12 +54,11 @@ func main() {
 	// Routes
 	router := mux.NewRouter()
 	router.HandleFunc("/", routes.IndexHandler).Methods("GET")
-	mediaRouter := router.PathPrefix("/media").Subrouter()
+	mediaRouter := router.PathPrefix("/api/media").Subrouter()
 	mediaRouter.Use(routes.CorsMiddleware)
 	routes.RegisterMediaRouter(&context, mediaRouter)
 
 	// HTTP
-	http.Handle("/", router)
 	port := "5000"
 	log.Printf("Photolens Server listening on port %s", port)
 	http.ListenAndServe("localhost:"+port, router)
